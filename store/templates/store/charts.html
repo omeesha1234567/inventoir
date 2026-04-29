@@ -1,0 +1,220 @@
+<div class="row g-4">
+    <div class="col-lg-4 col-md-12">
+        <div class="chart-card h-100">
+            <div class="chart-card-header">
+                <div>
+                    <h5 class="chart-title mb-1">Category Distribution</h5>
+                    <p class="chart-subtitle mb-0">Product category share</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper pie-wrapper">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8 col-md-12">
+        <div class="chart-card h-100">
+            <div class="chart-card-header">
+                <div>
+                    <h5 class="chart-title mb-1">Sales Analytics</h5>
+                    <p class="chart-subtitle mb-0">Sales performance over time</p>
+                </div>
+            </div>
+
+            <div class="chart-wrapper line-wrapper">
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ categories|safe }},
+            datasets: [{
+                data: {{ category_counts|safe }},
+                backgroundColor: [
+                    '#1a1c8f',
+                    '#4f46e5',
+                    '#6366f1',
+                    '#818cf8',
+                    '#a5b4fc',
+                    '#c7d2fe'
+                ],
+                borderColor: '#f8f8fb',
+                borderWidth: 4,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 18,
+                        color: '#6b7280',
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.raw;
+                        }
+                    }
+                },
+                title: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: {{ sale_dates_labels|safe }},
+            datasets: [{
+                label: 'Sales',
+                data: {{ sale_dates_values|safe }},
+                borderColor: '#5b5ce2',
+                backgroundColor: 'rgba(91, 92, 226, 0.08)',
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#5b5ce2',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                borderWidth: 3,
+                tension: 0.35,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Sales: ' + context.raw;
+                        }
+                    }
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: true,
+                        color: '#f0f1f6',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#9ca3af',
+                        font: {
+                            size: 11,
+                            weight: '500'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f0f1f6',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#9ca3af',
+                        font: {
+                            size: 11,
+                            weight: '500'
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .chart-card {
+        background: #fbfbfd;
+        border: 1px solid #f0f1f6;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
+        padding: 22px;
+    }
+
+    .chart-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .chart-title {
+        color: #2b2f42;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .chart-subtitle {
+        color: #9ca3af;
+        font-size: 0.86rem;
+        font-weight: 500;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .pie-wrapper {
+        height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .line-wrapper {
+        height: 360px;
+    }
+
+    #pieChart,
+    #lineChart {
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>

@@ -1,0 +1,210 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+
+    <div class="container">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 22px; overflow: hidden;">
+            <div style="height: 6px; background: #1a1c8f;"></div>
+
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h3 class="fw-bold mb-1" style="color: #1f2937;">Categories</h3>
+                    </div>
+
+                    <a class="btn px-4 py-2"
+                       href="{% url 'category-create' %}"
+                       style="background-color: #1a1c8f; color: white; border: none; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-plus me-2"></i>Add Category
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 22px;">
+            <div class="card-body p-0">
+                <style>
+                    .category-table th,
+                    .category-table td {
+                        text-align: center;
+                        vertical-align: middle;
+                        padding: 16px 14px;
+                    }
+
+                    .category-table thead th {
+                        background: #f8f9ff;
+                        color: #1a1c8f;
+                        font-size: 0.92rem;
+                        font-weight: 700;
+                        border-bottom: 1px solid #e9ecf5;
+                    }
+
+                    .category-table tbody tr {
+                        transition: background-color 0.2s ease;
+                    }
+
+                    .category-table tbody tr:hover {
+                        background-color: #f9faff;
+                    }
+
+                    .category-id {
+                        color: #6b7280;
+                        font-weight: 600;
+                    }
+
+                    .category-name {
+                        color: #1f2937;
+                        font-weight: 600;
+                    }
+
+                    .detail-btn {
+                        border: 1px solid #1a1c8f;
+                        color: #1a1c8f;
+                        background: white;
+                        border-radius: 10px;
+                        font-weight: 600;
+                        padding: 8px 14px;
+                        transition: all 0.2s ease;
+                    }
+
+                    .detail-btn:hover {
+                        background: #1a1c8f;
+                        color: white;
+                    }
+
+                    .page-link {
+                        color: #1a1c8f;
+                        border: none;
+                        border-radius: 10px !important;
+                        margin: 0 4px;
+                        box-shadow: 0 2px 8px rgba(17, 24, 39, 0.05);
+                    }
+
+                    .page-item.active .page-link {
+                        background-color: #1a1c8f;
+                        color: white;
+                    }
+
+                    .page-item.disabled .page-link {
+                        color: #9ca3af;
+                        background-color: #f3f4f6;
+                    }
+
+                    .empty-state {
+                        padding: 48px 20px;
+                        text-align: center;
+                        color: #6b7280;
+                    }
+
+                    .empty-state i {
+                        color: #1a1c8f;
+                        margin-bottom: 12px;
+                    }
+                </style>
+
+                <div class="table-responsive">
+                    <table class="table category-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">ID</th>
+                                <th>Name</th>
+                                <th style="width: 220px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in page_obj %}
+                            <tr>
+                                <td class="category-id">{{ category.pk }}</td>
+                                <td class="category-name">{{ category.name }}</td>
+                                <td>
+                                    <a href="{% url 'category-detail' category.pk %}" class="btn detail-btn btn-sm">
+                                        <i class="fa-solid fa-info-circle me-1"></i> View Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-folder-open fa-2x"></i>
+                                        <div class="fw-semibold">No categories found</div>
+                                        <div class="small">Start by adding a new category.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}

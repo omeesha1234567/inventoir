@@ -1,0 +1,134 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6 col-xl-5">
+
+            <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
+
+                <div style="height: 6px; background: #1a1c8f;"></div>
+
+                <div class="p-4 p-md-5">
+
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 56px; height: 56px; border-radius: 16px; background: rgba(26, 28, 143, 0.10); color: #1a1c8f;">
+                            <i class="{% if form.instance.pk %}fas fa-edit{% else %}fas fa-plus{% endif %}" style="font-size: 1.2rem;"></i>
+                        </div>
+
+                        <h3 class="fw-bold mb-1" style="color: #1f2937;">
+                            {% if form.instance.pk %}Edit Category{% else %}Create Category{% endif %}
+                        </h3>
+
+                        <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                            {% if form.instance.pk %}
+                                Update the category information below.
+                            {% else %}
+                                Add a new category to organize your inventory items.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <style>
+                        .form-label-custom {
+                            font-size: 0.82rem;
+                            font-weight: 700;
+                            color: #4b5563;
+                            margin-bottom: 8px;
+                            display: block;
+                            text-transform: uppercase;
+                            letter-spacing: 0.6px;
+                        }
+
+                        .custom-input input {
+                            width: 100%;
+                            padding: 13px 15px;
+                            border-radius: 14px;
+                            border: 1.5px solid #e5e7eb;
+                            background-color: #f9fafb;
+                            font-size: 0.96rem;
+                            color: #1f2937;
+                            transition: all 0.2s ease;
+                        }
+
+                        .custom-input input:focus {
+                            border-color: #1a1c8f;
+                            background-color: #ffffff;
+                            outline: none;
+                            box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.10);
+                        }
+
+                        .helper-box {
+                            background: #f8faff;
+                            border: 1px solid #e8edff;
+                            border-radius: 14px;
+                            padding: 14px 16px;
+                        }
+
+                        .primary-btn {
+                            background-color: #1a1c8f;
+                            border: none;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            color: white;
+                            padding: 11px 22px;
+                            transition: all 0.25s ease;
+                        }
+
+                        .primary-btn:hover {
+                            background-color: #151774;
+                            transform: translateY(-1px);
+                            box-shadow: 0 8px 18px rgba(26, 28, 143, 0.18);
+                            color: white;
+                        }
+
+                        .secondary-btn {
+                            border-radius: 12px;
+                            font-weight: 600;
+                            padding: 11px 20px;
+                        }
+                    </style>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label-custom">Category Name</label>
+                            <div class="custom-input">
+                                {{ form.name }}
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="text-danger small fw-semibold mt-2">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="helper-box mb-4">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle me-2 mt-1" style="color: #1a1c8f;"></i>
+                                <div style="color: #4b5563; font-size: 0.92rem;">
+                                    Use a short and clear category name so items are easy to organize and find.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+                            <a href="{% url 'category-list' %}" class="btn btn-outline-secondary secondary-btn">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+
+                            <button type="submit" class="btn primary-btn">
+                                <i class="fas fa-save me-1"></i>
+                                {% if form.instance.pk %}Update Category{% else %}Save Category{% endif %}
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

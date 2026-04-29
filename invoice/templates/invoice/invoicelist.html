@@ -1,0 +1,175 @@
+{% extends "store/base.html" %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+{% load static %}
+
+{% block title %}Invoices | INVENTOIR{% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold" style="color: #1A202C;">Invoices Management</h2>
+            <p style="color: #718096; font-size: 0.9rem;">
+                View and manage invoice records, customer details, and totals.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a class="btn shadow-sm px-3" href="{% url 'invoice-create' %}"
+               style="background-color: #4A4DE6; color: white; border-radius: 10px; font-weight: 600; border: none;">
+                <i class="fa-solid fa-plus me-2"></i> Create Invoice
+            </a>
+            <a class="btn btn-light shadow-sm px-3 border" href="{% querystring '_export'='xlsx' %}"
+               style="border-radius: 10px; font-weight: 600; color: #4A5568;">
+                <i class="fa-solid fa-download me-2"></i> Export
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer Name</th>
+                        <th>Phone Number</th>
+                        <th>Item</th>
+                        <th>Price per Item</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Shipping</th>
+                        <th>Grand Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td class="text-muted fw-bold">#{{ invoice.id }}</td>
+                        <td class="fw-bold">
+                            <a href="{% url 'invoice-detail' invoice.slug %}" style="text-decoration: none; color: #1A202C;">
+                                {{ invoice.customer_name }}
+                            </a>
+                        </td>
+                        <td class="text-muted">{{ invoice.contact_number }}</td>
+                        <td class="text-muted">{{ invoice.item.name }}</td>
+                        <td class="fw-bold" style="color: #1A202C;">{{ invoice.price_per_item }}</td>
+                        <td class="text-muted">{{ invoice.quantity }}</td>
+                        <td class="fw-bold" style="color: #1A202C;">{{ invoice.total }}</td>
+                        <td class="text-muted">{{ invoice.shipping }}</td>
+                        <td class="fw-bold" style="color: #1A202C;">{{ invoice.grand_total }}</td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'invoice-update' invoice.slug %}" class="btn btn-sm"
+                                   style="background-color: #F0F2FF; color: #4A4DE6; border-radius: 8px;">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'invoice-delete' invoice.pk %}" class="btn btn-sm"
+                                   style="background-color: #FFF1F1; color: #E53E3E; border-radius: 8px;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5 text-muted">No invoice records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+        .custom-table thead th {
+            background-color: #F8FAFC;
+            color: #4A5568;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 14px 16px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .custom-table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+            border-top: 1px solid #EDF2F7;
+            text-align: center;
+        }
+
+        .custom-table tbody tr:hover {
+            background-color: #FAFBFF;
+        }
+
+        .pagination .page-link {
+            border-radius: 10px;
+            margin: 0 3px;
+            color: #4A5568;
+            border: 1px solid #E2E8F0;
+            padding: 8px 14px;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #4A4DE6;
+            border-color: #4A4DE6;
+            color: white;
+        }
+    </style>
+
+    <div class="mt-4">
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </span>
+                </li>
+                {% endif %}
+
+                {% for i in paginator.page_range %}
+                    {% if page_obj.number == i %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ i }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

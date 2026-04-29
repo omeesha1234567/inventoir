@@ -1,0 +1,104 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}Invoice Details{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-xl-7">
+
+            <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
+                <div style="height: 6px; background: #1a1c8f;"></div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 58px; height: 58px; border-radius: 16px; background: rgba(26, 28, 143, 0.10); color: #1a1c8f;">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+
+                        <h3 class="fw-bold mb-1" style="color: #1f2937;">
+                            Invoice Details
+                        </h3>
+
+                        <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                            View complete invoice information and transaction details
+                        </p>
+                    </div>
+
+                    <style>
+                        .detail-box {
+                            background: #f9fafb;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 16px;
+                            padding: 18px;
+                        }
+
+                        .detail-label {
+                            font-size: 0.82rem;
+                            font-weight: 700;
+                            color: #6b7280;
+                            text-transform: uppercase;
+                            letter-spacing: 0.04em;
+                            margin-bottom: 6px;
+                        }
+
+                        .detail-value {
+                            font-size: 1rem;
+                            font-weight: 600;
+                            color: #1f2937;
+                            word-break: break-word;
+                        }
+
+                        .back-btn {
+                            border-radius: 12px;
+                            font-weight: 600;
+                            padding: 11px 20px;
+                        }
+                    </style>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <div class="detail-label">Invoice ID</div>
+                                <div class="detail-value">{{ object.slug }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <div class="detail-label">Customer</div>
+                                <div class="detail-value">{{ object.customer }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <div class="detail-label">Amount</div>
+                                <div class="detail-value">{{ object.amount }}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-box">
+                                <div class="detail-label">Status</div>
+                                <div class="detail-value">{{ object.status }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary back-btn">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

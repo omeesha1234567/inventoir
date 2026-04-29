@@ -1,0 +1,144 @@
+{% load crispy_forms_tags %}{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signed Out | INVENTOIR</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-indigo: #2224b5;
+            --soft-bg: #F4F7F9;
+            --text-dark: #1A202C;
+            --text-muted: #718096;
+        }
+
+        body {
+            /* Exactly matching the new Login background */
+            background: linear-gradient(135deg, #F0F2FF 0%, #F4F7F9 100%);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Inter', "Segoe UI", sans-serif;
+        }
+
+        .logout-container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .logout-card {
+            background: #FFFFFF;
+            padding: 50px 40px;
+            border-radius: 24px; /* Matches the refined card radius */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logout-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .brand-text {
+            font-size: 34px;
+            font-weight: 900; /* Matching the new bold branding */
+            color: var(--text-dark);
+            letter-spacing: -1.5px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        .logout-icon {
+            font-size: 50px;
+            color: var(--primary-indigo);
+            margin-bottom: 30px;
+            background: rgba(34, 36, 181, 0.05); /* Subtle indigo tint */
+            width: 110px;
+            height: 110px;
+            line-height: 110px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            color: var(--text-dark);
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .btn-login {
+            background-color: var(--primary-indigo);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 14px; /* Matches input/button radius of Login */
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(34, 36, 181, 0.2);
+        }
+
+        .btn-login:hover {
+            background-color: #1a1c8f;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(34, 36, 181, 0.3);
+        }
+
+        .footer-copyright {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logout-container">
+        <div class="brand-text">
+            INVENTOIR
+        </div>
+
+        <div class="logout-card">
+            <div class="logout-icon">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+            
+            <h2>Session Ended</h2>
+            <p>You have been safely signed out. <br> Thank you for your work today.</p>
+            
+            <hr style="opacity: 0.08; margin-bottom: 30px;">
+            
+            <a href="{% url 'user-login' %}" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket me-2"></i> Return to Login
+            </a>
+        </div>
+        
+        {% comment %} <div class="footer-copyright">
+            © 2026 INVENTOIR Suite
+        </div> {% endcomment %}
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,207 @@
+{% load crispy_forms_tags %}{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | INVENTOIR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-indigo: #2224b5;
+            --soft-bg: #F4F7F9;
+            --text-dark: #1A202C;
+            --text-muted: #718096;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F0F2FF 0%, #F4F7F9 100%);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", sans-serif;
+        }
+
+        .registration-page {
+            width: 100%;
+            max-width: 500px; /* Slightly wider for better field grouping */
+            padding: 40px 20px;
+        }
+
+        .form-card {
+            background: #FFFFFF;
+            padding: 45px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .brand-text {
+            font-size: 34px;
+            font-weight: 900;
+            color: var(--text-dark);
+            letter-spacing: -1.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        /* Grouping related inputs (User/Email) */
+        .input-group-custom {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            background-color: #F8F9FA;
+            border: 1.5px solid #E9ECEF;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            color: var(--text-dark);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-indigo);
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(34, 36, 181, 0.1);
+        }
+
+        .btn-register {
+            background-color: var(--primary-indigo);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(34, 36, 181, 0.2);
+        }
+
+        .btn-register:hover {
+            background-color: #1a1c8f;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(34, 36, 181, 0.3);
+        }
+
+        .message {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .message a {
+            color: var(--primary-indigo);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .alert-custom {
+            border: none;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .error-text {
+            color: #E53E3E;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="registration-page">
+    <div class="form-card">
+        <div class="brand-text">INVENTOIR</div>
+        <p class="subtitle">Join the management suite</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-custom py-2 px-3 mb-3">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-custom py-2 px-3 mb-3">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="input-group-custom">
+                <label><i class="fa-regular fa-circle-user me-2"></i>Username</label>
+                {% if form.username.errors %}<span class="error-text">{{ form.username.errors.0 }}</span>{% endif %}
+                {{ form.username }}
+            </div>
+
+            <div class="input-group-custom">
+                <label><i class="fa-regular fa-envelope me-2"></i>Email Address</label>
+                {% if form.email.errors %}<span class="error-text">{{ form.email.errors.0 }}</span>{% endif %}
+                {{ form.email }}
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group-custom text-start">
+                        <label>Password</label>
+                        {% if form.password1.errors %}<span class="error-text">{{ form.password1.errors.0 }}</span>{% endif %}
+                        {{ form.password1 }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group-custom text-start">
+                        <label>Confirm</label>
+                        {% if form.password2.errors %}<span class="error-text">{{ form.password2.errors.0 }}</span>{% endif %}
+                        {{ form.password2 }}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">
+                Register Account
+            </button>
+            
+            <p class="message">
+                Already have an account? <a href="{% url 'user-login' %}">Sign In</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

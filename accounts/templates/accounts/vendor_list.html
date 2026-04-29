@@ -1,0 +1,131 @@
+{% extends 'store/base.html' %}
+{% block title %}Vendors | INVENTOIR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #1A202C;">Vendors</h2>
+            <p style="color: #718096; font-size: 0.9rem;">Manage your supplier directory and contact information.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn shadow-sm px-4 py-2" href="{% url 'vendor-create' %}" 
+               style="background-color: #4A4DE6; color: white; border-radius: 10px; font-weight: 600; border: none;">
+                <i class="fa-solid fa-plus me-2"></i> Add Vendor
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; overflow: hidden;">
+        <div class="table-responsive">
+            <style>
+                .custom-table thead th {
+                    background-color: #ffffff;
+                    color: #8C94A9;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    padding: 20px;
+                    border-bottom: 1px solid #F1F4F9;
+                }
+                .custom-table tbody td {
+                    padding: 20px;
+                    color: #1A202C;
+                    font-size: 0.95rem;
+                    border-bottom: 1px solid #F1F4F9;
+                    vertical-align: middle;
+                }
+                .custom-table tbody tr:hover {
+                    background-color: #F8FAFC;
+                }
+                /* Pagination Styling */
+                .pagination .page-link {
+                    border: none;
+                    color: #718096;
+                    margin: 0 3px;
+                    border-radius: 8px !important;
+                    font-weight: 600;
+                    background-color: #F8F9FA;
+                }
+                .pagination .page-item.active .page-link {
+                    background-color: #4A4DE6;
+                    color: white;
+                }
+                .pagination .page-item.disabled .page-link {
+                    background-color: transparent;
+                    opacity: 0.5;
+                }
+            </style>
+            
+            <table class="table custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vendor in vendors %}
+                    <tr>
+                        <td><div class="fw-bold">{{ vendor.name }}</div></td>
+                        <td class="text-muted">{{ vendor.phone_number }}</td>
+                        <td class="text-muted">{{ vendor.address }}</td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'vendor-update' vendor.pk %}" class="btn btn-sm" 
+                                   style="background-color: #F0F2FF; color: #4A4DE6; border-radius: 8px;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'vendor-delete' vendor.pk %}" class="btn btn-sm" 
+                                   style="background-color: #FFF1F1; color: #E53E3E; border-radius: 8px;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">No vendors registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if vendors.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if vendors.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ vendors.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+            </li>
+            {% endif %}
+
+            {% for num in vendors.paginator.page_range %}
+                {% if vendors.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > vendors.number|add:'-3' and num < vendors.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if vendors.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ vendors.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ vendors.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

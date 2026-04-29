@@ -1,0 +1,145 @@
+<aside class="sidebar" id="show-side-navigation1">
+    <button class="btn btn-close-sidebar d-md-none d-lg-none position-absolute top-0 end-0 mt-2 me-2 rounded-circle"
+            data-close="show-side-navigation1"
+            aria-label="Close">
+        <i class="fa fa-times"></i>
+    </button>
+
+    <div class="sidebar-header d-flex align-items-center px-3 py-4">
+        <a href="{% url 'user-profile' %}" class="d-flex align-items-center text-decoration-none w-100">
+            <img class="rounded-circle img-fluid"
+                 id="sidebar-img"
+                 src="{{ request.user.profile.profile_picture.url }}"
+                 alt="Profile Picture">
+            <div class="ms-3">
+                <h5 class="fs-6 mb-1">
+                    {{ request.user.username }}
+                    {% if request.user.profile.role == 'AD' %}
+                        <i class="fa-solid fa-circle-check ms-1 admin-check"></i>
+                    {% endif %}
+                </h5>
+
+                <span class="badge role-badge">
+                    {% if request.user.profile.role == 'AD' %}
+                        Admin
+                    {% elif request.user.profile.role == 'EX' %}
+                        Executive
+                    {% else %}
+                        Operative
+                    {% endif %}
+                </span>
+            </div>
+        </a>
+    </div>
+
+    <div class="nav-container">
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                   href="{% url 'dashboard' %}">
+                    <i class="fa fa-tachometer-alt fa-fw me-2"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item mb-2 dropdown">
+                <a class="nav-link {% if request.resolver_match.url_name == 'productslist' or request.resolver_match.url_name == 'category-list' %}active{% endif %} dropdown-toggle"
+                   href="#"
+                   id="productsDropdown"
+                   role="button"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="false">
+                    <i class="fa fa-folder me-2"></i> Products
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="productsDropdown">
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'productslist' %}active{% endif %}"
+                           href="{% url 'productslist' %}">
+                            All Products
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'category-list' %}active{% endif %}"
+                           href="{% url 'category-list' %}">
+                            Categories
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'saleslist' %}active{% endif %}"
+                   href="{% url 'saleslist' %}">
+                    <i class="fa fa-shopping-bag fa-fw me-2"></i> Sales Orders
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'purchaseslist' %}active{% endif %}"
+                   href="{% url 'purchaseslist' %}">
+                    <i class="fa fa-shopping-cart me-2"></i> Purchase Orders
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}"
+                   href="{% url 'deliveries' %}">
+                    <i class="fa-solid fa-box me-2"></i> Package
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'invoicelist' %}active{% endif %}"
+                   href="{% url 'invoicelist' %}">
+                    <i class="fa-solid fa-receipt me-2"></i> Invoices
+                </a>
+            </li>
+
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
+                   href="{% url 'bill_list' %}">
+                    <i class="fa-solid fa-file-invoice me-2"></i> Bills
+                </a>
+            </li>
+
+            <li class="nav-item mb-2 dropdown">
+                <a class="nav-link {% if request.resolver_match.url_name == 'profile_list' or request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'vendor-list' %}active{% endif %} dropdown-toggle"
+                   href="#"
+                   id="accountsDropdown"
+                   role="button"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="false">
+                    <i class="fa fa-users me-2"></i> Accounts
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="accountsDropdown">
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'profile_list' %}active{% endif %}"
+                           href="{% url 'profile_list' %}">
+                            All Staff
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}"
+                           href="{% url 'customer_list' %}">
+                            Customers
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'vendor-list' %}active{% endif %}"
+                           href="{% url 'vendor-list' %}">
+                            Vendors
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="sidebar-footer">
+        <form method="post" action="{% url 'user-logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn logout-btn w-100">
+                <i class="fa fa-sign-out me-2"></i> Logout
+            </button>
+        </form>
+    </div>
+</aside>

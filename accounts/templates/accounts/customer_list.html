@@ -1,0 +1,146 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Customers | INVENTOIR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4" style="background-color: #F4F7F9; min-height: 100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold" style="color: #1A202C;">Customer Directory</h2>
+            <p style="color: #718096; font-size: 0.9rem;">
+                Manage your client relationships, GST details, and loyalty programs.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn shadow-sm px-4 py-2" href="{% url 'customer_create' %}"
+               style="background-color: #4A4DE6; color: white; border-radius: 10px; font-weight: 600; border: none;">
+                <i class="fa-solid fa-plus me-2"></i> Add New Customer
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; overflow: hidden; background: #ffffff;">
+        <div class="table-responsive">
+            <style>
+                .custom-table thead th {
+                    background-color: #ffffff;
+                    color: #8C94A9;
+                    font-weight: 700;
+                    font-size: 0.82rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    padding: 18px 16px;
+                    border-bottom: 1px solid #F1F4F9;
+                    text-align: center;
+                    white-space: nowrap;
+                }
+
+                .custom-table tbody td {
+                    padding: 18px 16px;
+                    color: #1A202C;
+                    font-size: 0.95rem;
+                    border-bottom: 1px solid #F1F4F9;
+                    vertical-align: middle;
+                    text-align: center;
+                }
+
+                .custom-table tbody tr:hover {
+                    background-color: #F8FAFC;
+                }
+
+                .points-badge {
+                    background-color: #F0F2FF;
+                    color: #090b65;
+                    font-weight: 700;
+                    padding: 4px 10px;
+                    border-radius: 6px;
+                    font-size: 0.85rem;
+                }
+
+                .gst-badge {
+                    background-color: #EEF7FF;
+                    color: #2563EB;
+                    font-weight: 700;
+                    padding: 5px 10px;
+                    border-radius: 8px;
+                    font-size: 0.82rem;
+                    display: inline-block;
+                }
+
+                .empty-gst {
+                    color: #A0AEC0;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                }
+            </style>
+
+            <table class="table custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Full Name</th>
+                        <th>Contact Info</th>
+                        <th>GST Number</th>
+                        <th>Address</th>
+                        <th>Loyalty</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td class="text-muted small">{{ forloop.counter }}</td>
+
+                        <td>
+                            <div class="fw-bold">
+                                {{ customer.first_name }} {{ customer.last_name }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="small fw-bold">{{ customer.phone }}</div>
+                            <div class="text-muted small">{{ customer.email }}</div>
+                        </td>
+
+                        <td>
+                            {% if customer.gst_number %}
+                                <span class="gst-badge">{{ customer.gst_number }}</span>
+                            {% else %}
+                                <span class="empty-gst">Not Added</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-muted" style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            {{ customer.address }}
+                        </td>
+
+                        <td>
+                            <span class="points-badge">{{ customer.loyalty_points }} pts</span>
+                        </td>
+
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'customer_update' customer.pk %}" class="btn btn-sm"
+                                   style="background-color: #F0F2FF; color: #4A4DE6; border-radius: 8px;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'customer_delete' customer.pk %}" class="btn btn-sm"
+                                   style="background-color: #FFF1F1; color: #E53E3E; border-radius: 8px;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            No customers found in the database.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

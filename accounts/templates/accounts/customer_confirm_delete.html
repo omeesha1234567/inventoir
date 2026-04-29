@@ -1,0 +1,58 @@
+{% extends 'store/base.html' %}
+{% block title %}Confirm Delete | INVENTOIR{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 75vh;">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-lg p-5 text-center" 
+                 style="border-radius: 20px; background: #ffffff; animation: fadeIn 0.4s ease-out;">
+                
+                <div class="mb-4 mx-auto d-flex align-items-center justify-content-center shadow-sm" 
+                     style="background-color: #FFF5F5; width: 80px; height: 80px; border-radius: 50%;">
+                    <i class="fas fa-trash-alt fa-2x" style="color: #E53E3E;"></i>
+                </div>
+
+                <h3 class="fw-bold mb-2" style="color: #1A202C;">Confirm Deletion</h3>
+                <p class="mb-4 px-2" style="color: #718096; line-height: 1.6; font-size: 0.95rem;">
+                    Are you sure you want to permanently remove <br>
+                    <span class="badge px-3 py-2 mt-2" style="background-color: #F7FAFC; color: #2D3748; font-size: 0.9rem; border: 1px solid #E2E8F0;">
+                        {{ object }}
+                    </span>?
+                </p>
+                
+                <div class="alert alert-warning py-2 mb-4 border-0 shadow-sm" style="background-color: #FFFBEB; color: #92400E; font-size: 0.85rem; border-radius: 10px;">
+                    <i class="fas fa-exclamation-circle me-2"></i> This action cannot be undone.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn py-3 text-white" 
+                                style="background-color: #E53E3E; border-radius: 12px; font-weight: 700; border: none; box-shadow: 0 4px 15px rgba(229, 62, 62, 0.25);">
+                             Delete Permanently
+                        </button>
+                        
+                        <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn py-2" 
+                           style="background-color: #F7FAFC; color: #718096; border-radius: 12px; font-weight: 600; border: 1px solid #E2E8F0;">
+                             No, keep it
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .btn:hover {
+        opacity: 0.9;
+        transform: scale(0.98);
+        transition: all 0.2s;
+    }
+</style>
+{% endblock %}

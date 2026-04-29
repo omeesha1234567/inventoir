@@ -1,0 +1,98 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+
+{% block title %}Staff Directory | INVENTOIR{% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #1A202C;">Staff Management</h2>
+            <p style="color: #718096; font-size: 0.9rem;">View and manage your team members and roles.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn shadow-sm px-3" href="{% url 'profile-create' %}" 
+               style="background-color: #4A4DE6; color: white; border-radius: 10px; font-weight: 600; border: none;">
+                <i class="fa-solid fa-user-plus me-2"></i> Add Staff
+            </a>
+            <a class="btn btn-light shadow-sm px-3 border" href="{% querystring '_export'='xlsx' %}" 
+               style="border-radius: 10px; font-weight: 600; color: #4A5568;">
+                <i class="fa-solid fa-download me-2"></i> Export
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="table-responsive">
+           
+            
+            <table class="table custom-table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Profile</th>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        {% if user.profile.role == 'AD' or user.profile.role == 'EX' %}
+                        <th>Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in profiles %}
+                    <tr>
+                        <td class="text-muted fw-bold">#{{ profile.id }}</td>
+                        <td>
+                            <img alt="Profile" src="{{ profile.profile_picture.url }}" class="avatar-img rounded-circle">
+                        </td>
+                        <td class="fw-bold">{{ profile.user.username }}</td>
+                        <td class="text-muted">{{ profile.telephone }}</td>
+                        <td>
+                            {% if profile.status == 'A' %}
+                            <span class="badge" style="background-color: #E6FFFA; color: #319795; padding: 6px 12px; border-radius: 8px;">Active</span>
+                            {% elif profile.status == 'OL' %}
+                            <span class="badge" style="background-color: #FFFBEB; color: #D69E2E; padding: 6px 12px; border-radius: 8px;">On Leave</span>
+                            {% else %}
+                            <span class="badge" style="background-color: #FFF5F5; color: #E53E3E; padding: 6px 12px; border-radius: 8px;">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-muted small fw-bold uppercase">
+                                {% if profile.role == 'AD' %} Admin 
+                                {% elif profile.role == 'EX' %} Executive 
+                                {% else %} Operative 
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                {% if user.profile.role == 'AD' or user.profile.role == 'EX' %}
+                                <a href="{% url 'profile-update' profile.id %}" class="btn btn-sm" 
+                                   style="background-color: #F0F2FF; color: #4A4DE6; border-radius: 8px;">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.profile.role == 'AD' %}
+                                <a href="{% url 'profile-delete' profile.id %}" class="btn btn-sm" 
+                                   style="background-color: #FFF1F1; color: #E53E3E; border-radius: 8px;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No staff profiles found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

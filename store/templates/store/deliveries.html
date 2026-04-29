@@ -1,0 +1,212 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+{% block title %}Deliveries{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+
+    <div class="container">
+
+        <!-- Header -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 22px; overflow: hidden;">
+            <div style="height: 6px; background: #1a1c8f;"></div>
+
+            <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #1f2937;">Deliveries</h3>
+                    <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                        Track and manage delivery orders
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a class="btn px-4 py-2"
+                       href="{% url 'delivery-create' %}"
+                       style="background-color: #1a1c8f; color: white; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-plus me-1"></i> Add Delivery
+                    </a>
+
+                    <a class="btn px-4 py-2"
+                       href="{% querystring '_export'='xlsx' %}"
+                       style="border: 1px solid #1a1c8f; color: #1a1c8f; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-download me-1"></i> Export
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card border-0 shadow-sm" style="border-radius: 22px;">
+            <div class="card-body p-0">
+
+                <style>
+                    .delivery-table th,
+                    .delivery-table td {
+                        text-align: center;
+                        vertical-align: middle;
+                        padding: 14px;
+                    }
+
+                    .delivery-table thead th {
+                        background: #f8f9ff;
+                        color: #1a1c8f;
+                        font-weight: 700;
+                        font-size: 0.9rem;
+                        border-bottom: 1px solid #e9ecf5;
+                    }
+
+                    .delivery-table tbody tr:hover {
+                        background-color: #f9faff;
+                    }
+
+                    .status-badge {
+                        padding: 6px 12px;
+                        border-radius: 999px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                    }
+
+                    .status-delivered {
+                        background: #ecfdf3;
+                        color: #047857;
+                    }
+
+                    .status-pending {
+                        background: #fef2f2;
+                        color: #b91c1c;
+                    }
+
+                    .action-btn {
+                        border-radius: 10px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                        padding: 6px 10px;
+                    }
+
+                    .action-btn.edit {
+                        border: 1px solid #1a1c8f;
+                        color: #1a1c8f;
+                    }
+
+                    .action-btn.edit:hover {
+                        background: #1a1c8f;
+                        color: white;
+                    }
+
+                    .action-btn.delete {
+                        border: 1px solid #dc2626;
+                        color: #dc2626;
+                    }
+
+                    .action-btn.delete:hover {
+                        background: #dc2626;
+                        color: white;
+                    }
+
+                    .page-link {
+                        color: #1a1c8f;
+                        border-radius: 10px !important;
+                        margin: 0 4px;
+                    }
+
+                    .page-item.active .page-link {
+                        background-color: #1a1c8f;
+                        color: white;
+                    }
+                </style>
+
+                <div class="table-responsive">
+                    <table class="table delivery-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Item</th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for delivery in deliveries %}
+                            <tr>
+                                <td>{{ delivery.id }}</td>
+                                <td>{{ delivery.item.name }}</td>
+                                <td>{{ delivery.customer_name }}</td>
+                                <td>{{ delivery.phone_number }}</td>
+                                <td>{{ delivery.location }}</td>
+                                <td>{{ delivery.date }}</td>
+
+                                <td>
+                                    {% if delivery.is_delivered %}
+                                        <span class="status-badge status-delivered">Delivered</span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <a href="{% url 'delivery-update' delivery.pk %}" class="btn action-btn edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    <a href="{% url 'delivery-delete' delivery.pk %}" class="btn action-btn delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-muted py-4">
+                                    No deliveries found
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">«</span></li>
+                    {% endif %}
+
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">»</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

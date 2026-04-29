@@ -1,0 +1,167 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}
+    Add Product
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-xl-7">
+
+            <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
+                <div style="height: 6px; background: #1a1c8f;"></div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 58px; height: 58px; border-radius: 16px; background: rgba(26, 28, 143, 0.10); color: #1a1c8f;">
+                            <i class="fas fa-box"></i>
+                        </div>
+
+                        <h3 class="fw-bold mb-1" style="color: #1f2937;">
+                            Add Product
+                        </h3>
+
+                        <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                            Enter product details to add it to inventory
+                        </p>
+                    </div>
+
+                    <style>
+                        .product-form .form-control,
+                        .product-form select,
+                        .product-form textarea {
+                            border-radius: 12px !important;
+                            border: 1.5px solid #e5e7eb !important;
+                            background-color: #f9fafb !important;
+                            padding: 12px 14px !important;
+                            font-size: 0.95rem;
+                            transition: all 0.2s ease;
+                        }
+
+                        .product-form .form-control:focus,
+                        .product-form select:focus,
+                        .product-form textarea:focus {
+                            border-color: #1a1c8f !important;
+                            background-color: #ffffff !important;
+                            box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.10) !important;
+                        }
+
+                        .product-form label {
+                            font-weight: 600;
+                            color: #374151;
+                            margin-bottom: 6px;
+                        }
+
+                        .submit-btn {
+                            background-color: #1a1c8f;
+                            border: none;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            color: white;
+                            padding: 11px 24px;
+                            transition: all 0.25s ease;
+                        }
+
+                        .submit-btn:hover {
+                            background-color: #151774;
+                            transform: translateY(-1px);
+                            box-shadow: 0 8px 18px rgba(26, 28, 143, 0.18);
+                        }
+
+                        .back-btn {
+                            border-radius: 12px;
+                            font-weight: 600;
+                            padding: 11px 20px;
+                        }
+
+                        .helper-text {
+                            font-size: 0.85rem;
+                            color: #6b7280;
+                            margin-top: 6px;
+                        }
+                    </style>
+
+                    <form method="POST" enctype="multipart/form-data" class="product-form">
+                        {% csrf_token %}
+
+                        <div class="row g-4 mb-3">
+                            <div class="col-md-6">
+                                <label>Product Name</label>
+                                {{ form.name }}
+                                <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label>Category</label>
+                                {{ form.category_name }}
+                                <datalist id="category-options">
+                                    {% for category in categories %}
+                                        <option value="{{ category.name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                                <div class="text-danger small mt-1">{{ form.category_name.errors }}</div>
+                                
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Description</label>
+                            {{ form.description }}
+                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                        </div>
+
+                        <div class="row g-4 mb-3">
+                            <div class="col-md-6">
+                                <label>Quantity</label>
+                                {{ form.quantity }}
+                                <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label>Selling Price</label>
+                                {{ form.price }}
+                                <div class="text-danger small mt-1">{{ form.price.errors }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label>Expiring Date</label>
+                                {{ form.expiring_date }}
+                                <div class="text-danger small mt-1">{{ form.expiring_date.errors }}</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label>Vendor</label>
+                                {{ form.vendor_name }}
+                                <datalist id="vendor-options">
+                                    {% for vendor in vendors %}
+                                        <option value="{{ vendor.name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                                <div class="text-danger small mt-1">{{ form.vendor_name.errors }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <a href="{% url 'productslist' %}" class="btn btn-outline-secondary back-btn">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+
+                            <button class="btn submit-btn" type="submit">
+                                <i class="fas fa-save me-1"></i> Add Product
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

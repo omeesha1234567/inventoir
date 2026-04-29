@@ -1,0 +1,107 @@
+{% extends 'store/base.html' %}
+{% block title %}My Profile | INVENTOIR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5" style="background-color: #F4F7F9; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 24px; overflow: hidden;">
+                <div style="height: 120px; background: linear-gradient(90deg, #2224b5 0%, #4A4DE6 100%);"></div>
+                
+                <div class="card-body p-4 p-md-5" style="margin-top: -60px;">
+                    <div class="row align-items-end mb-4">
+                        <div class="col-auto">
+                            <div class="position-relative">
+                                <img src="{{ user.profile.profile_picture.url }}" 
+                                     alt="{{ user.username }}" 
+                                     class="rounded-circle shadow-sm"
+                                     style="width: 140px; height: 140px; object-fit: cover; border: 6px solid white; background: white;">
+                                <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" 
+                                      style="width: 20px; height: 20px; border-width: 3px !important;" title="Active"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="col mt-3 mt-md-0">
+                            <h2 class="fw-bold mb-1" style="color: #1A202C; letter-spacing: -1px;">
+                                {{ user.profile.first_name }} {{ user.profile.last_name }}
+                            </h2>
+                            <p class="text-muted mb-2"><i class="fa-regular fa-envelope me-2"></i>{{ user.email }}</p>
+                            
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="badge" style="background-color: #F0F2FF; color: #2224b5; padding: 8px 16px; border-radius: 10px; font-weight: 700;">
+                                    {% if user.profile.role == 'AD' %} Admin 
+                                    {% elif user.profile.role == 'EX' %} Executive 
+                                    {% else %} Staff Operative {% endif %}
+                                </span>
+                                <span class="text-muted small">| ID: #{{ user.id|add:"1000" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-auto mt-4 mt-md-0">
+                            <a href="{% url 'user-profile-update' %}" class="btn px-4 py-2 text-white shadow-sm" 
+                               style="background-color: #2224b5; border-radius: 12px; font-weight: 600; border: none;">
+                                <i class="fa-solid fa-user-pen me-2"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <hr style="opacity: 0.08;" class="my-5">
+
+                    <div class="row g-5">
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase fw-bold mb-4" style="color: #8C94A9; font-size: 0.75rem; letter-spacing: 1px;">Account Details</h6>
+                            
+                            <div class="mb-4">
+                                <label class="d-block small text-muted mb-1">Username</label>
+                                <p class="fw-bold" style="color: #1A202C;">@{{ user.username }}</p>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="d-block small text-muted mb-1">Staff Role</label>
+                                <p class="fw-bold" style="color: #1A202C;">
+                                    {% if user.profile.role == 'AD' %} Administrator
+                                    {% elif user.profile.role == 'EX' %} Executive Manager
+                                    {% else %} Standard User {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase fw-bold mb-4" style="color: #8C94A9; font-size: 0.75rem; letter-spacing: 1px;">Contact Information</h6>
+                            
+                            <div class="mb-4">
+                                <label class="d-block small text-muted mb-1">Mobile Number</label>
+                                <p class="fw-bold" style="color: #1A202C;">
+                                    {% if user.profile.telephone %} {{ user.profile.telephone }} {% else %} <span class="text-muted fw-normal italic">Not provided</span> {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="d-block small text-muted mb-1">Member Since</label>
+                                <p class="fw-bold" style="color: #1A202C;">{{ user.date_joined|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; border-left: 5px solid #F6AD55 !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 rounded-circle" style="background: #FFFBEB;">
+                            <i class="fa-solid fa-shield-halved" style="color: #D69E2E;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Account Security</h6>
+                            <small class="text-muted">Keep your account safe by updating your password regularly.</small>
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-sm btn-light border fw-bold px-3">Change Password</a>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

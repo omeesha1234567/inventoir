@@ -1,0 +1,123 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add Delivery Record{% endblock title %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7 col-xl-6">
+
+            <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
+                <div style="height: 6px; background: #1a1c8f;"></div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 58px; height: 58px; border-radius: 16px; background: rgba(26, 28, 143, 0.10); color: #1a1c8f;">
+                            <i class="fas fa-truck" style="font-size: 1.25rem;"></i>
+                        </div>
+
+                        <h3 class="fw-bold mb-1" style="color: #1f2937;">Add Delivery Record</h3>
+                        <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                            Enter delivery details and save the new delivery record.
+                        </p>
+                    </div>
+
+                    <style>
+                        .delivery-form-card .form-control,
+                        .delivery-form-card .form-select,
+                        .delivery-form-card input,
+                        .delivery-form-card select,
+                        .delivery-form-card textarea {
+                            border-radius: 12px !important;
+                            border: 1.5px solid #e5e7eb !important;
+                            background-color: #f9fafb !important;
+                            box-shadow: none !important;
+                            padding: 12px 14px !important;
+                            font-size: 0.95rem;
+                            transition: all 0.2s ease;
+                        }
+
+                        .delivery-form-card .form-control:focus,
+                        .delivery-form-card .form-select:focus,
+                        .delivery-form-card input:focus,
+                        .delivery-form-card select:focus,
+                        .delivery-form-card textarea:focus {
+                            border-color: #1a1c8f !important;
+                            background-color: #ffffff !important;
+                            box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.10) !important;
+                        }
+
+                        .delivery-form-card label {
+                            font-weight: 600;
+                            color: #374151;
+                            margin-bottom: 6px;
+                        }
+
+                        .delivery-form-card .asteriskField {
+                            color: #dc2626;
+                            margin-left: 2px;
+                        }
+
+                        .delivery-form-card .helptext {
+                            color: #6b7280;
+                            font-size: 0.82rem;
+                        }
+
+                        .delivery-form-card .text-danger,
+                        .delivery-form-card .invalid-feedback {
+                            font-size: 0.84rem;
+                            font-weight: 600;
+                        }
+
+                        .submit-btn {
+                            background-color: #1a1c8f;
+                            border: none;
+                            color: #ffffff;
+                            font-weight: 600;
+                            border-radius: 12px;
+                            padding: 11px 24px;
+                            transition: all 0.25s ease;
+                        }
+
+                        .submit-btn:hover {
+                            background-color: #151774;
+                            color: #ffffff;
+                            transform: translateY(-1px);
+                            box-shadow: 0 8px 18px rgba(26, 28, 143, 0.18);
+                        }
+
+                        .back-btn {
+                            border-radius: 12px;
+                            font-weight: 600;
+                            padding: 11px 20px;
+                        }
+                    </style>
+
+                    <form method="POST" enctype="multipart/form-data" class="delivery-form-card">
+                        {% csrf_token %}
+
+                        {{ form.media }}
+                        {{ form|crispy }}
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-2">
+                            <a href="{% url 'deliveries' %}" class="btn btn-outline-secondary back-btn">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+
+                            <button class="btn submit-btn" type="submit">
+                                <i class="fas fa-save me-1"></i> Save Delivery
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
