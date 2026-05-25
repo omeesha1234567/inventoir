@@ -5,26 +5,24 @@ from .models import Item, Category, Delivery
 
 class ItemForm(forms.ModelForm):
     category_name = forms.CharField(
-    required=True,
-    widget=forms.TextInput(
-        attrs={
-            'class': 'form-control',
-            'placeholder': 'Select or type category',
-            'list': 'category-options'
-        }
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'list': 'category-options'
+            }
+        )
     )
-)
 
     vendor_name = forms.CharField(
-    required=False,
-    widget=forms.TextInput(
-        attrs={
-            'class': 'form-control',
-            'placeholder': 'Select or type vendor',
-            'list': 'vendor-options'
-        }
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'list': 'vendor-options'
+            }
+        )
     )
-)
 
     class Meta:
         model = Item
@@ -33,8 +31,14 @@ class ItemForm(forms.ModelForm):
             'description',
             'quantity',
             'price',
-            'expiring_date'
+            'gst_percentage',
+            'purchase_date'
         ]
+        labels = {
+            'price': 'Cost Price',
+            'gst_percentage': 'GST (%)',
+            'purchase_date': 'Purchase Date',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(
@@ -47,10 +51,19 @@ class ItemForm(forms.ModelForm):
             'price': forms.NumberInput(
                 attrs={
                     'class': 'form-control',
-                    'step': '0.01'
+                    'step': '0.01',
+                    'id': 'id_price'
                 }
             ),
-            'expiring_date': forms.DateTimeInput(
+            'gst_percentage': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.01',
+                    'id': 'id_gst_percentage',
+                    'placeholder': 'Enter GST'
+                }
+            ),
+            'purchase_date': forms.DateTimeInput(
                 attrs={
                     'class': 'form-control',
                     'type': 'datetime-local'
@@ -67,17 +80,13 @@ class ItemForm(forms.ModelForm):
                 self.fields['vendor_name'].initial = self.instance.vendor.name
 
     def clean_category_name(self):
-        category_name = " ".join(
-            self.cleaned_data.get('category_name', '').split()
-        )
+        category_name = " ".join(self.cleaned_data.get('category_name', '').split())
         if not category_name:
             raise forms.ValidationError('Category is required.')
         return category_name
 
     def clean_vendor_name(self):
-        vendor_name = " ".join(
-            self.cleaned_data.get('vendor_name', '').split()
-        )
+        vendor_name = " ".join(self.cleaned_data.get('vendor_name', '').split())
         return vendor_name
 
     def save(self, commit=True):
@@ -86,18 +95,14 @@ class ItemForm(forms.ModelForm):
         category_name = self.cleaned_data.get('category_name')
         vendor_name = self.cleaned_data.get('vendor_name')
 
-        category_obj = Category.objects.filter(
-            name__iexact=category_name
-        ).first()
+        category_obj = Category.objects.filter(name__iexact=category_name).first()
         if category_obj is None:
             category_obj = Category.objects.create(name=category_name)
 
         item.category = category_obj
 
         if vendor_name:
-            vendor_obj = Vendor.objects.filter(
-                name__iexact=vendor_name
-            ).first()
+            vendor_obj = Vendor.objects.filter(name__iexact=vendor_name).first()
             if vendor_obj is None:
                 vendor_obj = Vendor.objects.create(name=vendor_name)
             item.vendor = vendor_obj

@@ -7,7 +7,6 @@ from imagekit.processors import ResizeToFill
 from phonenumber_field.modelfields import PhoneNumberField
 
 
-# Define choices for profile status and roles
 STATUS_CHOICES = [
     ('INA', 'Inactive'),
     ('A', 'Active'),
@@ -22,9 +21,6 @@ ROLE_CHOICES = [
 
 
 class Profile(models.Model):
-    """
-    Represents a user profile containing personal and account-related details.
-    """
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, verbose_name='User'
     )
@@ -68,32 +64,21 @@ class Profile(models.Model):
 
     @property
     def image_url(self):
-        """
-        Returns the URL of the profile picture.
-        Returns an empty string if the image is not available.
-        """
         try:
             return self.profile_picture.url
         except AttributeError:
             return ''
 
     def __str__(self):
-        """
-        Returns a string representation of the profile.
-        """
         return f"{self.user.username} Profile"
 
     class Meta:
-        """Meta options for the Profile model."""
         ordering = ['slug']
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'
 
 
 class Vendor(models.Model):
-    """
-    Represents a vendor with contact and address information.
-    """
     name = models.CharField(max_length=50, verbose_name='Name')
     slug = AutoSlugField(
         unique=True,
@@ -103,18 +88,20 @@ class Vendor(models.Model):
     phone_number = models.BigIntegerField(
         blank=True, null=True, verbose_name='Phone Number'
     )
+    email = models.EmailField(
+        max_length=150, blank=True, null=True, verbose_name='Email'
+    )
+    gst_number = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name='GST Number'
+    )
     address = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name='Address'
+        max_length=100, blank=True, null=True, verbose_name='Address'
     )
 
     def __str__(self):
-        """
-        Returns a string representation of the vendor.
-        """
         return self.name
 
     class Meta:
-        """Meta options for the Vendor model."""
         verbose_name = 'Vendor'
         verbose_name_plural = 'Vendors'
 
@@ -132,10 +119,26 @@ class Customer(models.Model):
         db_table = 'Customers'
 
     def __str__(self) -> str:
-        return self.first_name + " " + self.last_name
+        first_name = self.first_name or ""
+        last_name = self.last_name or ""
+
+        full_name = f"{first_name} {last_name}".strip()
+
+        if full_name:
+            return full_name
+
+        return "Unknown Customer"
 
     def get_full_name(self):
-        return self.first_name + " " + self.last_name
+        first_name = self.first_name or ""
+        last_name = self.last_name or ""
+
+        full_name = f"{first_name} {last_name}".strip()
+
+        if full_name:
+            return full_name
+
+        return "Unknown Customer"
 
     def to_select2(self):
         item = {

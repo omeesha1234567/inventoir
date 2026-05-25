@@ -17,7 +17,7 @@
                         Inventory Items
                     </h2>
                     <p class="mb-0" style="color: #6b7280; font-size: 1rem;">
-                        Manage your products, stock, pricing, and vendor details.
+                        Manage your products, stock, pricing, purchase history, and vendor details.
                     </p>
                 </div>
 
@@ -78,31 +78,27 @@
                     <thead style="background-color: #f3f4ff;">
                         <tr>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
-                                   class="text-decoration-none"
-                                   style="color: #1a1c8f;">
-                                    ID <i class="fa-solid fa-sort ms-1 small"></i>
-                                </a>
+                                Sr No
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Name <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Name
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Category <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Category
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Quantity <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Quantity
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Price <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Cost Price
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Expiring Date <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Purchase Date
                             </th>
                             <th scope="col" class="py-3 px-4 text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
-                                Vendor <i class="fa-solid fa-sort ms-1 small text-muted"></i>
+                                Vendor
                             </th>
-                            <th scope="col" class="py-3 px-4 text-center text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem;">
+                            <th scope="col" class="py-3 px-4 text-center text-nowrap" style="color: #1a1c8f; font-weight: 700; font-size: 0.95rem; width: 190px;">
                                 Action
                             </th>
                         </tr>
@@ -112,7 +108,7 @@
                         {% for item in items %}
                         <tr style="border-bottom: 1px solid #eef0f6;">
                             <th scope="row" class="px-4 py-3" style="color: #4b5563; font-weight: 600;">
-                                {{ item.id }}
+                                {{ page_obj.start_index|add:forloop.counter0 }}
                             </th>
 
                             <td class="px-4 py-3" style="color: #111827; font-weight: 600; font-size: 0.98rem;">
@@ -132,24 +128,38 @@
                             </td>
 
                             <td class="px-4 py-3" style="color: #6b7280; font-weight: 500;">
-                                {{ item.expiring_date }}
+                                {% if item.purchase_date %}
+                                    {{ item.purchase_date|date:"d M Y" }}
+                                {% else %}
+                                    —
+                                {% endif %}
                             </td>
 
                             <td class="px-4 py-3" style="color: #374151; font-weight: 500;">
-                                {{ item.vendor }}
+                                {% if item.vendor %}
+                                    {{ item.vendor }}
+                                {% else %}
+                                    —
+                                {% endif %}
                             </td>
 
-                            <td class="px-4 py-3">
-                                <div class="d-flex flex-wrap justify-content-center gap-2">
-                                    <a class="btn btn-sm rounded-pill px-3"
+                            <td class="px-3 py-3">
+                                <div class="d-flex justify-content-center align-items-center gap-1 flex-wrap">
+                                    <a class="btn btn-sm rounded-pill px-2 py-1"
+                                        href="{% url 'product-detail' item.slug %}"
+                                        style="border: 1px solid #0d6efd; color: #0d6efd; background: white; font-weight: 600; font-size: 0.78rem; min-width: 58px;">
+                                        <i class="fa-solid fa-eye me-1"></i>View
+                                    </a>
+
+                                    <a class="btn btn-sm rounded-pill px-2 py-1"
                                        href="{% url 'product-update' item.slug %}"
-                                       style="border: 1px solid #1a1c8f; color: #1a1c8f; background: white; font-weight: 600;">
+                                       style="border: 1px solid #1a1c8f; color: #1a1c8f; background: white; font-weight: 600; font-size: 0.78rem; min-width: 58px;">
                                         <i class="fa-solid fa-pen me-1"></i>Edit
                                     </a>
 
-                                    <a class="btn btn-sm rounded-pill px-3"
+                                    <a class="btn btn-sm rounded-pill px-2 py-1"
                                        href="{% url 'product-delete' item.slug %}"
-                                       style="border: 1px solid #dc3545; color: #dc3545; background: white; font-weight: 600;">
+                                       style="border: 1px solid #dc3545; color: #dc3545; background: white; font-weight: 600; font-size: 0.78rem; min-width: 62px;">
                                         <i class="fa-solid fa-trash me-1"></i>Delete
                                     </a>
                                 </div>

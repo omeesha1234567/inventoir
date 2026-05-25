@@ -26,20 +26,23 @@
                     font-size: 0.85rem;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    padding: 20px;
+                    padding: 18px;
                     border-bottom: 1px solid #F1F4F9;
+                    white-space: nowrap;
                 }
+
                 .custom-table tbody td {
-                    padding: 20px;
+                    padding: 18px;
                     color: #1A202C;
                     font-size: 0.95rem;
                     border-bottom: 1px solid #F1F4F9;
                     vertical-align: middle;
                 }
+
                 .custom-table tbody tr:hover {
                     background-color: #F8FAFC;
                 }
-                /* Pagination Styling */
+
                 .pagination .page-link {
                     border: none;
                     color: #718096;
@@ -48,13 +51,24 @@
                     font-weight: 600;
                     background-color: #F8F9FA;
                 }
+
                 .pagination .page-item.active .page-link {
                     background-color: #4A4DE6;
                     color: white;
                 }
+
                 .pagination .page-item.disabled .page-link {
                     background-color: transparent;
                     opacity: 0.5;
+                }
+
+                .vendor-name {
+                    font-weight: 700;
+                    color: #1A202C;
+                }
+
+                .muted-text {
+                    color: #718096;
                 }
             </style>
             
@@ -63,6 +77,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Phone Number</th>
+                        <th>Email</th>
+                        <th>GST Number</th>
                         <th>Address</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -70,9 +86,42 @@
                 <tbody>
                     {% for vendor in vendors %}
                     <tr>
-                        <td><div class="fw-bold">{{ vendor.name }}</div></td>
-                        <td class="text-muted">{{ vendor.phone_number }}</td>
-                        <td class="text-muted">{{ vendor.address }}</td>
+                        <td>
+                            <div class="vendor-name">{{ vendor.name }}</div>
+                        </td>
+
+                        <td class="muted-text">
+                            {% if vendor.phone_number %}
+                                {{ vendor.phone_number }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td class="muted-text">
+                            {% if vendor.email %}
+                                {{ vendor.email }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td class="muted-text">
+                            {% if vendor.gst_number %}
+                                {{ vendor.gst_number }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td class="muted-text">
+                            {% if vendor.address %}
+                                {{ vendor.address }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="{% url 'vendor-update' vendor.pk %}" class="btn btn-sm" 
@@ -88,7 +137,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">No vendors registered yet.</td>
+                        <td colspan="6" class="text-center py-5 text-muted">No vendors registered yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -1,4 +1,6 @@
+from decimal import Decimal
 from django.db import models
+from django.db.models import Sum
 from django_extensions.db.fields import AutoSlugField
 
 from store.models import Item
@@ -6,12 +8,19 @@ from accounts.models import Vendor, Customer
 
 DELIVERY_CHOICES = [("P", "Pending"), ("S", "Successful")]
 
+PAYMENT_MODE_CHOICES = [
+    ("NONE", "None"),
+    ("CASH", "Cash"),
+    ("CREDIT_CARD", "Credit Card"),
+    ("DEBIT_CARD", "Debit Card"),
+    ("CHEQUE", "Cheque"),
+    ("UPI", "UPI"),
+    ("BANK_TRANSFER", "Bank Transfer"),
+    ("OTHER", "Other"),
+]
+
 
 class Sale(models.Model):
-    """
-    Represents a sale transaction involving a customer.
-    """
-
     date_added = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Sale Date"
@@ -54,27 +63,24 @@ class Sale(models.Model):
         verbose_name_plural = "Sales"
 
     def __str__(self):
-        """
-        Returns a string representation of the Sale instance.
-        """
         return (
             f"Sale ID: {self.id} | "
             f"Grand Total: {self.grand_total} | "
             f"Date: {self.date_added}"
         )
 
+    @property
+    def remaining_amount(self):
+        remaining = self.grand_total - self.amount_paid
+        if remaining < 0:
+            return 0
+        return remaining
+
     def sum_(self):
-        """
-        Returns the total quantity of  in the sale.
-        """
         return sum(detail.quantity for detail in self.saledetail_set.all())
 
 
 class SaleDetail(models.Model):
-    """
-    Represents details of a specific sale, including item and quantity.
-    """
-
     sale = models.ForeignKey(
         Sale,
         on_delete=models.CASCADE,
@@ -99,9 +105,6 @@ class SaleDetail(models.Model):
         verbose_name_plural = "Sale Details"
 
     def __str__(self):
-        """
-        Returns a string representation of the SaleDetail instance.
-        """
         return (
             f"Detail ID: {self.id} | "
             f"Sale ID: {self.sale.id} | "
@@ -110,51 +113,147 @@ class SaleDetail(models.Model):
 
 
 class Purchase(models.Model):
-    """
-    Represents a purchase of an item,
-    including vendor details and delivery status.
-    """
-
-    slug = AutoSlugField(unique=True, populate_from="vendor")
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    description = models.TextField(max_length=300, blank=True, null=True)
+    slug = AutoSlugField(unique=True, populate_from="slug_source")
     vendor = models.ForeignKey(
-        Vendor, related_name="purchases", on_delete=models.CASCADE
+        Vendor,
+        related_name="purchases",
+        on_delete=models.CASCADE
     )
+    description = models.TextField(max_length=300, blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
-    delivery_date = models.DateTimeField(
+    delivery_date = models.DateField(
         blank=True, null=True, verbose_name="Delivery Date"
     )
-    quantity = models.PositiveIntegerField(default=0)
     delivery_status = models.CharField(
         choices=DELIVERY_CHOICES,
         max_length=1,
         default="P",
         verbose_name="Delivery Status",
     )
-    price = models.DecimalField(
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODE_CHOICES,
+        default="CASH",
+        verbose_name="Payment Mode",
+    )
+    amount_paid = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0.0,
-        verbose_name="Price per item (Ksh)",
+        verbose_name="Amount Paid",
     )
-    total_value = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def save(self, *args, **kwargs):
-        """
-        Calculates the total value before saving the Purchase instance.
-        """
-        self.total_value = self.price * self.quantity
-        super().save(*args, **kwargs)
-        # Update the item quantity
-        self.item.quantity += self.quantity
-        self.item.save()
-
-    def __str__(self):
-        """
-        Returns a string representation of the Purchase instance.
-        """
-        return str(self.item.name)
 
     class Meta:
-        ordering = ["order_date"]
+        ordering = ["-order_date"]
+
+    @property
+    def slug_source(self):
+        vendor_name = self.vendor.name if self.vendor else "purchase"
+        if self.delivery_date:
+            return f"{vendor_name}-{self.delivery_date}"
+        return f"{vendor_name}-{self.order_date}"
+
+    @property
+    def total_value(self):
+        total = self.purchase_items.aggregate(
+            total=Sum("line_total")
+        ).get("total") or Decimal("0.00")
+        return total
+
+    @property
+    def remaining_amount(self):
+        remaining = self.total_value - self.amount_paid
+        if remaining < 0:
+            return Decimal("0.00")
+        return remaining
+
+    @property
+    def items_count(self):
+        return self.purchase_items.count()
+
+    def sync_payment_state(self, save=True):
+        total_paid = self.payments.aggregate(
+            total=Sum("amount")
+        ).get("total") or Decimal("0.00")
+
+        if total_paid > self.total_value:
+            total_paid = self.total_value
+
+        self.amount_paid = total_paid
+
+        if self.total_value > 0 and self.amount_paid == self.total_value:
+            self.delivery_status = "S"
+        else:
+            self.delivery_status = "P"
+
+        if save:
+            self.save(update_fields=["amount_paid", "delivery_status"])
+
+    def __str__(self):
+        return f"Purchase #{self.id} - {self.vendor.name}"
+
+
+class PurchaseItem(models.Model):
+    purchase = models.ForeignKey(
+        Purchase,
+        on_delete=models.CASCADE,
+        related_name="purchase_items"
+    )
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    gst_percentage = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+    line_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.0
+    )
+
+    def save(self, *args, **kwargs):
+        base_total = Decimal(self.quantity) * Decimal(self.price)
+        gst_amount = base_total * (Decimal(self.gst_percentage) / Decimal("100"))
+        self.line_total = base_total + gst_amount
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.purchase} - {self.item.name}"
+
+
+class PurchasePayment(models.Model):
+    purchase = models.ForeignKey(
+        Purchase,
+        on_delete=models.CASCADE,
+        related_name="payments"
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODE_CHOICES,
+        default="CASH"
+    )
+    note = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+    paid_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-paid_on", "-id"]
+
+    def __str__(self):
+        return f"Payment #{self.id} for Purchase #{self.purchase.id}"

@@ -1,247 +1,342 @@
-{% extends 'store/base.html' %}
-{% block title %}Invoice detail{% endblock %}
-{% load crispy_forms_tags %}
+static/images/invoice_format.pdf{% extends 'store/base.html' %}
+{% block title %}Invoice Detail{% endblock %}
+
 {% block content %}
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title> Order confirmation </title>
-<meta name="robots" content="noindex,nofollow" />
-<meta name="viewport" content="width=device-width; initial-scale=1.0;" />
 <style>
-  @import "compass/css3";
-  .invoice-receipt {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    height: fit-content;
-    width: 50%;
-    background-color: #ffffff;
-    font-family: 'courier';
-  }
+    .invoice-page {
+        background: #f5f6fa;
+        min-height: 100vh;
+        padding: 30px 0;
+    }
+
+    .invoice-sheet {
+        width: 100%;
+        max-width: 1050px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #dcdfe6;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        padding: 24px 28px;
+        font-family: Arial, sans-serif;
+        color: #111827;
+    }
+
+    .invoice-title {
+        text-align: center;
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    .company-block {
+        border-bottom: 1px solid #d1d5db;
+        padding-bottom: 14px;
+        margin-bottom: 14px;
+    }
+
+    .company-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .company-text {
+        font-size: 0.92rem;
+        line-height: 1.55;
+        color: #374151;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .info-card {
+        border: 1px solid #d1d5db;
+        padding: 12px 14px;
+        min-height: 150px;
+    }
+
+    .info-card h6 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 6px;
+    }
+
+    .info-card p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: #374151;
+        white-space: pre-line;
+    }
+
+    .meta-table,
+    .items-table,
+    .tax-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 18px;
+    }
+
+    .meta-table td,
+    .items-table th,
+    .items-table td,
+    .tax-table th,
+    .tax-table td {
+        border: 1px solid #d1d5db;
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        vertical-align: top;
+    }
+
+    .meta-table td.label {
+        width: 28%;
+        font-weight: 700;
+        background: #f9fafb;
+    }
+
+    .items-table th,
+    .tax-table th {
+        background: #f3f4f6;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .items-table td.text-end,
+    .tax-table td.text-end,
+    .meta-table td.text-end {
+        text-align: right;
+    }
+
+    .items-table td.text-center,
+    .tax-table td.text-center {
+        text-align: center;
+    }
+
+    .summary-row td {
+        font-weight: 700;
+        background: #f9fafb;
+    }
+
+    .section-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        margin: 18px 0 8px;
+    }
+
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 14px;
+        margin-top: 8px;
+    }
+
+    .bottom-card {
+        border: 1px solid #d1d5db;
+        padding: 12px 14px;
+        min-height: 140px;
+    }
+
+    .bottom-card h6 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .bottom-card p {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: #374151;
+        white-space: pre-line;
+    }
+
+    .signature-box {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .print-btn-wrap {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    @media print {
+        #wrapper nav,
+        .sidebar,
+        .print-btn-wrap {
+            display: none !important;
+        }
+
+        .invoice-page {
+            background: #fff;
+            padding: 0;
+        }
+
+        .invoice-sheet {
+            box-shadow: none;
+            border: none;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .info-grid,
+        .bottom-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .invoice-sheet {
+            padding: 16px;
+        }
+    }
 </style>
-<div class="container text-center m-5">
-<a class="btn btn-success btn-sm"><i class="fa fa-print"></i> Print</a>
-</div>
-<div class="container invoice-receipt p-5">
-  <!-- Header -->
-  <table width="100%" cellpadding="0" cellspacing="0" align="center" class="fullTable" >
-    <tr>
-      <td height="20"></td>
-    </tr>
-    <tr>
-      <td>
-        <table width="600" cellpadding="0" cellspacing="0" align="center" class="fullTable" style="border-radius: 10px 10px 0 0;">
-          <tr class="hiddenMobile">
-            <td height="40"></td>
-          </tr>
-          <tr class="visibleMobile">
-            <td height="30"></td>
-          </tr>
 
-          <tr>
-            <td>
-              <table width="480" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
-                <tbody>
-                  <tr>
-                    <td>
-                      <table width="220" cellpadding="0" cellspacing="0" align="left" class="col">
-                        <tbody>
-                          <tr>
-                            <td align="left">InventoryMS</td>
-                          </tr>
-                          <tr class="hiddenMobile">
-                            <td height="40"></td>
-                          </tr>
-                          <tr class="visibleMobile">
-                            <td height="20"></td>
-                          </tr>
-                          <tr>
-                            <td style="font-size: 12px; color: #5b5b5b;  line-height: 18px; vertical-align: top; text-align: left;">
-                              Hello, {{invoice.customer_name}}
-                              <br> Thank you for shopping from our store and for your order.
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                      <table width="220" cellpadding="0" cellspacing="0" align="right" class="col">
-                        <tbody>
-                          <tr class="visibleMobile">
-                            <td height="20"></td>
-                          </tr>
-                          <tr>
-                            <td height="5"></td>
-                          </tr>
-                          <tr>
-                            <td style="font-size: 21px; color: #ff0000; letter-spacing: -1px;  line-height: 1; vertical-align: top; text-align: right;">
-                              Invoice
-                            </td>
-                          </tr>
-                          <tr>
-                          <tr class="hiddenMobile">
-                            <td height="50"></td>
-                          </tr>
-                          <tr class="visibleMobile">
-                            <td height="20"></td>
-                          </tr>
-                          <tr>
-                            <td style="font-size: 12px; color: #5b5b5b;  line-height: 18px; vertical-align: top; text-align: right;">
-                              <small>ORDER</small> #800000025<br />
-                              <small>{{invoice.date}}</small>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-  <!-- /Header -->
-  <!-- Order Details -->
-  <table width="100%" cellpadding="0" cellspacing="0" align="center" class="fullTable">
-    <tbody>
-      <tr>
-        <td>
-          <table width="600" cellpadding="0" cellspacing="0" align="center" class="fullTable">
+<div class="invoice-page">
+    <div class="print-btn-wrap">
+        <button onclick="window.print()" class="btn btn-success btn-sm">
+            <i class="fa fa-print me-1"></i> Print
+        </button>
+    </div>
+
+    <div class="invoice-sheet">
+        <div class="invoice-title">Tax Invoice</div>
+
+        <div class="company-block">
+            <div class="company-name">Nescube Technology Pvt Ltd</div>
+            <div class="company-text">
+                SD 135, Jaipuriya Sunrise Plaza, Plot No-12A, Indirapuram, Ghaziabad, U.P. 201014
+                <br>GSTIN/UIN: 09AAFCN4905R1ZT
+                <br>State Name: Uttar Pradesh, Code: 09
+                <br>Contact: 0120-4286333
+                <br>Email: support@nestechindia.com
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h6>Consignee (Ship to)</h6>
+                <p>{{ invoice.customer_name|default:"-" }}</p>
+            </div>
+
+            <div class="info-card">
+                <h6>Buyer (Bill to)</h6>
+                <p>{{ invoice.customer_name|default:"-" }}</p>
+            </div>
+
+            <div class="info-card">
+                <h6>Invoice Details</h6>
+                <table class="meta-table mb-0">
+                    <tr>
+                        <td class="label">Invoice No.</td>
+                        <td>{{ invoice.id }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Sale ID</td>
+                        <td>{% if invoice.sale %}{{ invoice.sale.id }}{% else %}-{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Dated</td>
+                        <td>{{ invoice.date|date:"d-M-y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Phone</td>
+                        <td>{{ invoice.contact_number|default:"-" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 6%;">Sl</th>
+                    <th>Description of Goods</th>
+                    <th style="width: 14%;">Quantity</th>
+                    <th style="width: 16%;">Rate</th>
+                    <th style="width: 18%;">Amount</th>
+                </tr>
+            </thead>
             <tbody>
-              <tr>
-              <tr class="hiddenMobile">
-                <td height="60"></td>
-              </tr>
-              <tr class="visibleMobile">
-                <td height="40"></td>
-              </tr>
-              <tr>
-                <td>
-                  <table width="480" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
-                    <tbody>
-                      <tr>
-                        <th style="font-size: 12px;  color: #5b5b5b; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 10px 7px 0;" width="52%" align="left">
-                          Item
-                        </th>
-                        <th style="font-size: 12px;  color: #5b5b5b; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 0 7px;" align="center">
-                          Quantity
-                        </th>
-                        <th style="font-size: 12px;  color: #1e2b33; font-weight: normal; line-height: 1; vertical-align: top; padding: 0 0 7px;" align="right">
-                          Subtotal
-                        </th>
-                      </tr>
-                      <tr>
-                        <td height="1" style="background: #bebebe;" colspan="4"></td>
-                      </tr>
-                      <tr>
-                        <td height="10" colspan="4"></td>
-                      </tr>
-                      <tr>
-                        <td style="font-size: 12px;  color: #ff0000;  line-height: 18px;  vertical-align: top; padding:10px 0;" class="article">
-                          {{invoice.item.name}}
-                        </td>
-
-                        <td style="font-size: 12px;  color: #646a6e;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="center">{{invoice.quantity}}</td>
-                        <td style="font-size: 12px;  color: #1e2b33;  line-height: 18px;  vertical-align: top; padding:10px 0;" align="right">Ksh {{invoice.price_per_item}}</td>
-                      </tr>
-                      <tr>
-                        <td height="1" colspan="4" style="border-bottom:1px solid #e4e4e4"></td>
-                      </tr>
-                      <tr>
-                        <td height="1" colspan="4" style="border-bottom:1px solid #e4e4e4"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-              <tr>
-                <td height="20"></td>
-              </tr>
+                {% for line in invoice_items %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td>{{ line.item.name }}</td>
+                    <td class="text-center">{{ line.quantity }}</td>
+                    <td class="text-end">₹{{ line.price }}</td>
+                    <td class="text-end">₹{{ line.line_total }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No invoice items found.</td>
+                </tr>
+                {% endfor %}
+                <tr class="summary-row">
+                    <td colspan="2" class="text-end">Total</td>
+                    <td class="text-center">{{ invoice.items_count }}</td>
+                    <td></td>
+                    <td class="text-end">₹{{ invoice.total }}</td>
+                </tr>
             </tbody>
-          </table>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <!-- /Order Details -->
-  <!-- Total -->
-  <table width="100%" cellpadding="0" cellspacing="0" align="center" class="fullTable">
-    <tbody>
-      <tr>
-        <td>
-          <table width="600" cellpadding="0" cellspacing="0" align="center" class="fullTable">
-            <tbody>
-              <tr>
-                <td>
-
-                  <!-- Table Total -->
-                  <table width="480" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
-                    <tbody>
-                      <tr>
-                        <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                          Subtotal
-                        </td>
-                        <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; white-space:nowrap;" width="80">
-                          {{invoice.total}}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                          Shipping &amp; Handling
-                        </td>
-                        <td style="font-size: 12px;  color: #646a6e; line-height: 22px; vertical-align: top; text-align:right; ">
-                          {{invoice.shipping}}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="font-size: 12px;  color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                          <strong>Grand Total</strong>
-                        </td>
-                        <td style="font-size: 12px;  color: #000; line-height: 22px; vertical-align: top; text-align:right; ">
-                          <strong>{{invoice.grand_total}}</strong>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <!-- /Table Total -->
-
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <!-- /Total -->
-  <!-- /Information -->
-  <table width="100%" cellpadding="0" cellspacing="0" align="center" class="fullTable" >
-
-    <tr>
-      <td>
-        <table width="600" cellpadding="0" cellspacing="0" align="center" class="fullTable" style="border-radius: 0 0 10px 10px;">
-          <tr>
-            <td>
-              <table width="480" cellpadding="0" cellspacing="0" align="center" class="fullPadding">
-                <tbody>
-                  <tr>
-                    <td style="font-size: 12px; color: #5b5b5b;  line-height: 18px; vertical-align: top; text-align: left;">
-                      Have a nice day.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </td>
-          </tr>
-          <tr class="spacer">
-            <td height="50"></td>
-          </tr>
         </table>
-      </td>
-    </tr>
-    <tr>
-      <td height="20"></td>
-    </tr>
-  </table>
+
+        <div class="section-title">Tax / Charges Summary</div>
+        <table class="tax-table">
+            <thead>
+                <tr>
+                    <th>Taxable Value</th>
+                    <th>Shipping</th>
+                    <th>Grand Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-end">₹{{ invoice.total }}</td>
+                    <td class="text-end">₹{{ invoice.shipping }}</td>
+                    <td class="text-end">₹{{ invoice.grand_total }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="bottom-grid">
+            <div class="bottom-card">
+                <h6>Amount Chargeable (in words)</h6>
+                <p>INR {{ invoice.grand_total }} only</p>
+
+                <h6 class="mt-3">Declaration</h6>
+                <p>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</p>
+            </div>
+
+            <div class="bottom-card signature-box">
+                {% comment %} <div>
+                    <h6>Company’s Bank Details</h6>
+                    <p>
+Bank Name : UNION BANK OF INDIA
+A/c No. : 510101005458969
+Branch & IFSC : GHAZIABAD - INDIRAPURAM BRANCH & UBIN0556424
+                    </p>
+                </div> {% endcomment %}
+
+                <div style="margin-top: 30px;">
+                    <p style="text-align: right; font-weight: 700; color: #111827;">
+                        for Nescube Technology Pvt Ltd
+                        <br><br><br>
+                        Authorised Signatory
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 16px; font-size: 0.85rem; color: #6b7280; text-align: center;">
+            This is a Computer Generated Invoice
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,124 +1,112 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load render_table from django_tables2 %}
-{% load querystring from django_tables2 %}
 
 {% block title %}Sales{% endblock title %}
 
 {% block content %}
 <div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
-
     <div class="container">
-
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 22px; overflow: hidden;">
             <div style="height: 6px; background: #1a1c8f;"></div>
 
-            <div class="card-body p-4">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div>
-                        <h3 class="fw-bold mb-1" style="color: #1f2937;">Sales</h3>
-                        <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
-                            Track and manage sales orders
-                        </p>
-                    </div>
+            <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h3 class="fw-bold mb-1" style="color: #1f2937;">Sales</h3>
+                    <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
+                        Track and manage all sales transactions
+                    </p>
+                </div>
 
-                    <div class="d-flex flex-wrap gap-2">
-                        <a class="btn px-4 py-2"
-                           href="{% url 'sale-create' %}"
-                           style="background-color: #1a1c8f; color: white; border: none; border-radius: 12px; font-weight: 600;">
-                            <i class="fa-solid fa-plus me-1"></i> Add Sale Order
-                        </a>
+                <div class="d-flex gap-2">
+                    <a class="btn px-4 py-2"
+                       href="{% url 'sale-create' %}"
+                       style="background-color: #1a1c8f; color: white; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-plus me-1"></i> Add Sale
+                    </a>
 
-                        <a class="btn px-4 py-2"
-                           href="{% url 'sales-export' %}"
-                           style="border: 1px solid #1a1c8f; color: #1a1c8f; background: white; border-radius: 12px; font-weight: 600;">
-                            <i class="fa-solid fa-download me-1"></i> Export
-                        </a>
-                    </div>
+                    <a class="btn px-4 py-2"
+                       href="{% url 'sales-export' %}"
+                       style="border: 1px solid #1a1c8f; color: #1a1c8f; border-radius: 12px; font-weight: 600;">
+                        <i class="fa-solid fa-download me-1"></i> Export
+                    </a>
                 </div>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm" style="border-radius: 22px;">
             <div class="card-body p-0">
-
                 <style>
                     .sales-table th,
                     .sales-table td {
                         text-align: center;
                         vertical-align: middle;
                         padding: 14px 12px;
+                        white-space: nowrap;
                     }
 
                     .sales-table thead th {
                         background: #f8f9ff;
                         color: #1a1c8f;
                         font-weight: 700;
-                        font-size: 0.9rem;
+                        font-size: 0.88rem;
                         border-bottom: 1px solid #e9ecf5;
-                        white-space: nowrap;
-                    }
-
-                    .sales-table tbody tr {
-                        transition: background-color 0.2s ease;
                     }
 
                     .sales-table tbody tr:hover {
                         background-color: #f9faff;
                     }
 
-                    .money-text {
-                        font-weight: 600;
-                        color: #1f2937;
+                    .amount-paid {
+                        color: #047857;
+                        font-weight: 700;
                     }
 
-                    .muted-text {
-                        color: #6b7280;
-                        font-weight: 500;
+                    .amount-remaining {
+                        color: #dc2626;
+                        font-weight: 700;
                     }
 
-                    .detail-btn {
-                        border: 1px solid #1a1c8f;
-                        color: #1a1c8f;
-                        background: white;
+                    .amount-clear {
+                        color: #047857;
+                        font-weight: 700;
+                    }
+
+                    .action-btn {
                         border-radius: 10px;
+                        font-size: 0.8rem;
                         font-weight: 600;
-                        padding: 7px 12px;
-                        transition: all 0.2s ease;
+                        padding: 6px 10px;
                     }
 
-                    .detail-btn:hover {
-                        background: #1a1c8f;
+                    .action-btn.view {
+                        border: 1px solid #2563eb;
+                        color: #2563eb;
+                    }
+
+                    .action-btn.view:hover {
+                        background: #2563eb;
+                        color: white;
+                    }
+
+                    .action-btn.delete {
+                        border: 1px solid #dc2626;
+                        color: #dc2626;
+                    }
+
+                    .action-btn.delete:hover {
+                        background: #dc2626;
                         color: white;
                     }
 
                     .page-link {
                         color: #1a1c8f;
-                        border: none;
                         border-radius: 10px !important;
                         margin: 0 4px;
-                        box-shadow: 0 2px 8px rgba(17, 24, 39, 0.05);
                     }
 
                     .page-item.active .page-link {
                         background-color: #1a1c8f;
                         color: white;
-                    }
-
-                    .page-item.disabled .page-link {
-                        color: #9ca3af;
-                        background-color: #f3f4f6;
-                    }
-
-                    .empty-state {
-                        padding: 48px 20px;
-                        text-align: center;
-                        color: #6b7280;
-                    }
-
-                    .empty-state i {
-                        color: #1a1c8f;
-                        margin-bottom: 12px;
                     }
                 </style>
 
@@ -126,45 +114,51 @@
                     <table class="table sales-table mb-0">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>Sale ID</th>
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th>Sub Total</th>
                                 <th>Grand Total</th>
-                                <th>Tax Amount</th>
-                                <th>Tax %</th>
                                 <th>Amount Paid</th>
-                                <th>Amount Change</th>
-                                <th>Actions</th>
+                                <th>Remaining Amount</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {% for sale in sales %}
                             <tr>
-                                <td class="muted-text">{{ sale.id }}</td>
-                                <td class="muted-text">{{ sale.date_added|date:"Y-m-d H:i:s" }}</td>
-                                <td class="money-text">{{ sale.customer }}</td>
-                                <td class="money-text">₹{{ sale.sub_total }}</td>
-                                <td class="money-text">₹{{ sale.grand_total }}</td>
-                                <td class="muted-text">₹{{ sale.tax_amount }}</td>
-                                <td class="muted-text">{{ sale.tax_percentage }}</td>
-                                <td class="money-text">₹{{ sale.amount_paid }}</td>
-                                <td class="muted-text">₹{{ sale.amount_change }}</td>
+                                <td>#{{ sale.id }}</td>
+                                <td>{{ sale.date_added|date:"M d, Y" }}</td>
+                                <td>{{ sale.customer }}</td>
+                                <td>₹{{ sale.sub_total }}</td>
+                                <td>₹{{ sale.grand_total }}</td>
+                                <td class="amount-paid">₹{{ sale.amount_paid }}</td>
+
                                 <td>
-                                    <a class="btn detail-btn btn-sm" href="{% url 'sale-detail' sale.id %}">
-                                        <i class="fa-solid fa-eye me-1"></i> View
-                                    </a>
+                                    {% if sale.remaining_amount > 0 %}
+                                        <span class="amount-remaining">₹{{ sale.remaining_amount }}</span>
+                                    {% else %}
+                                        <span class="amount-clear">₹0.00</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                        <a href="{% url 'sale-detail' sale.pk %}" class="btn action-btn view">
+                                            <i class="fa-solid fa-eye me-1"></i> View
+                                        </a>
+
+                                        <a href="{% url 'sale-delete' sale.slug %}" class="btn action-btn delete">
+                                            <i class="fa-solid fa-trash me-1"></i> Delete
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="10">
-                                    <div class="empty-state">
-                                        <i class="fa-solid fa-file-invoice-dollar fa-2x"></i>
-                                        <div class="fw-semibold">No sales records found</div>
-                                        <div class="small">Create a new sale order to get started.</div>
-                                    </div>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    No sale records found
                                 </td>
                             </tr>
                             {% endfor %}
@@ -175,54 +169,37 @@
             </div>
         </div>
 
+        {% if is_paginated %}
         <div class="d-flex justify-content-center mt-4">
-            {% if is_paginated %}
-            <nav aria-label="Page navigation">
-                <ul class="pagination mb-0">
+            <nav>
+                <ul class="pagination">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
                     </li>
                     {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </span>
-                    </li>
+                    <li class="page-item disabled"><span class="page-link">«</span></li>
                     {% endif %}
 
                     {% for i in paginator.page_range %}
                         {% if page_obj.number == i %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ i }}</span>
-                        </li>
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                         {% else %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                        </li>
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
                     </li>
                     {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </span>
-                    </li>
+                    <li class="page-item disabled"><span class="page-link">»</span></li>
                     {% endif %}
                 </ul>
             </nav>
-            {% endif %}
         </div>
-
+        {% endif %}
     </div>
 </div>
-{% endblock content %}
+{% endblock %}

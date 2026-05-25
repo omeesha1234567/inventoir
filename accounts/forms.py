@@ -6,11 +6,9 @@ from .models import Profile, Customer, Vendor
 
 
 class CreateUserForm(UserCreationForm):
-    """Form for creating a new user with an email field."""
     email = forms.EmailField()
 
     class Meta:
-        """Meta options for the CreateUserForm."""
         model = User
         fields = [
             'username',
@@ -21,9 +19,7 @@ class CreateUserForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """Form for updating existing user information."""
     class Meta:
-        """Meta options for the UserUpdateForm."""
         model = User
         fields = [
             'username',
@@ -32,9 +28,7 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
-    """Form for updating user profile information."""
     class Meta:
-        """Meta options for the ProfileUpdateForm."""
         model = Profile
         fields = [
             'telephone',
@@ -46,7 +40,6 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class CustomerForm(forms.ModelForm):
-    """Form for creating/updating customer information."""
     class Meta:
         model = Customer
         fields = [
@@ -92,16 +85,21 @@ class CustomerForm(forms.ModelForm):
 
 
 class VendorForm(forms.ModelForm):
-    """Form for creating/updating vendor information."""
     class Meta:
         model = Vendor
-        fields = ['name', 'phone_number', 'address']
+        fields = ['name', 'phone_number', 'email', 'gst_number', 'address']
         widgets = {
             'name': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Vendor Name'}
             ),
             'phone_number': forms.NumberInput(
                 attrs={'class': 'form-control', 'placeholder': 'Phone Number'}
+            ),
+            'email': forms.EmailInput(
+                attrs={'class': 'form-control', 'placeholder': 'Email Address'}
+            ),
+            'gst_number': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'GST Number'}
             ),
             'address': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Address'}

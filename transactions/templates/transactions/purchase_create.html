@@ -1,0 +1,768 @@
+{% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}Create Purchase{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
+                <div style="height: 6px; background: #1a1c8f;"></div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <div class="mb-4 d-flex align-items-start gap-3">
+                        <div class="d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width: 58px; height: 58px; border-radius: 16px; background: rgba(26, 28, 143, 0.10); color: #1a1c8f;">
+                            <i class="fas fa-cart-plus"></i>
+                        </div>
+
+                        <div>
+                            <h3 class="fw-bold mb-1" style="color: #1f2937;">
+                                Create Purchase
+                            </h3>
+                        </div>
+                    </div>
+
+                    <style>
+                        .purchase-form .form-control,
+                        .purchase-form select,
+                        .purchase-form textarea {
+                            border-radius: 12px !important;
+                            border: 1.5px solid #e5e7eb !important;
+                            background-color: #f9fafb !important;
+                            padding: 10px 12px !important;
+                            font-size: 0.92rem;
+                            transition: all 0.2s ease;
+                        }
+
+                        .purchase-form .form-control:focus,
+                        .purchase-form select:focus,
+                        .purchase-form textarea:focus {
+                            border-color: #1a1c8f !important;
+                            background-color: #ffffff !important;
+                            box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.10) !important;
+                        }
+
+                        .purchase-table {
+                            table-layout: fixed;
+                            width: 100%;
+                        }
+
+                        .purchase-table th {
+                            background: #f8f9ff;
+                            color: #1a1c8f;
+                            font-weight: 700;
+                            text-align: center;
+                            vertical-align: middle;
+                            white-space: nowrap;
+                            font-size: 0.88rem;
+                            padding: 10px 8px;
+                        }
+
+                        .purchase-table td {
+                            vertical-align: top;
+                            padding: 10px 8px;
+                        }
+
+                        .purchase-table th:nth-child(1),
+                        .purchase-table td:nth-child(1) {
+                            width: 55px;
+                            min-width: 55px;
+                            max-width: 55px;
+                            text-align: center;
+                        }
+
+                        .purchase-table th:nth-child(2),
+                        .purchase-table td:nth-child(2) {
+                            width: 180px;
+                        }
+
+                        .purchase-table th:nth-child(3),
+                        .purchase-table td:nth-child(3) {
+                            width: 160px;
+                        }
+
+                        .purchase-table th:nth-child(4),
+                        .purchase-table td:nth-child(4) {
+                            width: 220px;
+                        }
+
+                        .purchase-table th:nth-child(5),
+                        .purchase-table td:nth-child(5) {
+                            width: 95px;
+                            min-width: 95px;
+                            max-width: 95px;
+                        }
+
+                        .purchase-table th:nth-child(6),
+                        .purchase-table td:nth-child(6) {
+                            width: 110px;
+                            min-width: 110px;
+                        }
+
+                        .purchase-table th:nth-child(7),
+                        .purchase-table td:nth-child(7) {
+                            width: 90px;
+                            min-width: 90px;
+                            max-width: 90px;
+                        }
+
+                        .purchase-table th:nth-child(8),
+                        .purchase-table td:nth-child(8) {
+                            width: 160px;
+                            min-width: 160px;
+                        }
+
+                        .purchase-table th:nth-child(9),
+                        .purchase-table td:nth-child(9) {
+                            width: 80px;
+                            min-width: 80px;
+                            max-width: 80px;
+                            text-align: center;
+                        }
+
+                        .purchase-table textarea.form-control {
+                            min-height: 44px;
+                            resize: vertical;
+                        }
+
+                        .readonly-box {
+                            background-color: #eef2ff !important;
+                            color: #1f2937 !important;
+                            font-weight: 600;
+                            text-align: center;
+                        }
+
+                        .summary-box {
+                            background: #f8f9ff;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 14px;
+                            padding: 14px 16px;
+                        }
+
+                        .summary-label {
+                            font-size: 0.88rem;
+                            color: #6b7280;
+                            font-weight: 600;
+                        }
+
+                        .summary-value {
+                            font-size: 1.1rem;
+                            color: #1f2937;
+                            font-weight: 700;
+                        }
+
+                        .submit-btn {
+                            background-color: #1a1c8f;
+                            border: none;
+                            border-radius: 12px;
+                            font-weight: 600;
+                            color: white;
+                            padding: 11px 24px;
+                            transition: all 0.25s ease;
+                        }
+
+                        .submit-btn:hover {
+                            background-color: #151774;
+                            transform: translateY(-1px);
+                            box-shadow: 0 8px 18px rgba(26, 28, 143, 0.18);
+                        }
+
+                        .submit-btn:disabled {
+                            background-color: #8083d6;
+                            cursor: not-allowed;
+                            transform: none;
+                            box-shadow: none;
+                        }
+
+                        .back-btn {
+                            border-radius: 12px;
+                            font-weight: 600;
+                            padding: 11px 20px;
+                        }
+
+                        .add-row-btn {
+                            background-color: #eef2ff;
+                            color: #1a1c8f;
+                            border: 1px solid #c7d2fe;
+                            border-radius: 12px;
+                            font-weight: 600;
+                        }
+
+                        .add-row-btn:hover {
+                            background-color: #dfe7ff;
+                            color: #11136f;
+                        }
+
+                        .add-row-btn:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+                    </style>
+
+                    <form id="purchase_form" class="purchase-form">
+                        {% csrf_token %}
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Vendor</label>
+                                <input type="text" id="vendor_name" class="form-control" list="vendor-options" placeholder="Select or type vendor">
+                                <datalist id="vendor-options">
+                                    {% for vendor in vendors %}
+                                        <option value="{{ vendor.name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Phone Number</label>
+                                <input type="text" id="vendor_phone_number" class="form-control" placeholder="Enter vendor phone number">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Email</label>
+                                <input type="email" id="vendor_email" class="form-control" placeholder="Enter vendor email">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">GST Number</label>
+                                <input type="text" id="vendor_gst_number" class="form-control" placeholder="Enter vendor GST number">
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Address</label>
+                                <input type="text" id="vendor_address" class="form-control" placeholder="Enter vendor address">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Purchase Date</label>
+                                <input type="date" id="delivery_date" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Purchase Description</label>
+                                <textarea id="purchase_description" class="form-control" rows="2" placeholder="Optional note for this purchase batch"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn add-row-btn px-4 py-2" id="add_row_btn">
+                                <i class="fas fa-plus me-1"></i> Add Row
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered purchase-table align-middle" id="purchase_table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product Name</th>
+                                        <th>Category</th>
+                                        <th>Product Description</th>
+                                        <th>Quantity</th>
+                                        <th>Cost Price</th>
+                                        <th>GST (%)</th>
+                                        <th>Line Total (GST Incl.)</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchase_table_body"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="row g-4 mt-3 mb-4">
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Status</label>
+                                <input type="text" class="form-control" value="Auto calculated from payment" readonly>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Initial Payment Mode</label>
+                                <select id="payment_mode" class="form-control">
+                                    {% for value, label in payment_mode_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Initial Amount Paid</label>
+                                <input type="text" inputmode="decimal" autocomplete="off" id="amount_paid" class="form-control" value="0.00" placeholder="Enter initial amount paid">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Total Amount</label>
+                                <div class="summary-box">
+                                    <div class="summary-label">Total Purchase Amount</div>
+                                    <div class="summary-value" id="purchase_total_display">₹0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+                            <a href="{% url 'purchaseslist' %}" class="btn btn-outline-secondary back-btn">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+
+                            <button type="submit" class="btn submit-btn" id="save_purchase_btn">
+                                <i class="fas fa-save me-1"></i> Create Purchase
+                            </button>
+                        </div>
+                    </form>
+
+                    <datalist id="item-options">
+                        {% for item in items %}
+                            <option value="{{ item.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+
+                    <datalist id="category-options">
+                        {% for category in categories %}
+                            <option value="{{ category.name }}"></option>
+                        {% endfor %}
+                    </datalist>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    let rowCount = 0;
+    let isSubmitting = false;
+
+    function cleanDecimal(value) {
+        value = String(value || '').replace(/[^\d.]/g, '');
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        return value;
+    }
+
+    function cleanInteger(value) {
+        return String(value || '').replace(/[^\d]/g, '');
+    }
+
+    function createRow() {
+        rowCount += 1;
+
+        return `
+            <tr data-row="${rowCount}">
+                <td class="text-center fw-bold">${rowCount}</td>
+                <td>
+                    <input type="text" class="form-control item-name" list="item-options" placeholder="Select or type product">
+                </td>
+                <td>
+                    <input type="text" class="form-control category-name" list="category-options" placeholder="Select or type category">
+                </td>
+                <td>
+                    <textarea class="form-control item-description" rows="1" placeholder="Enter product description"></textarea>
+                </td>
+                <td>
+                    <input type="text" inputmode="numeric" autocomplete="off" class="form-control quantity" value="1">
+                </td>
+                <td>
+                    <input type="text" inputmode="decimal" autocomplete="off" class="form-control price" value="0">
+                </td>
+                <td>
+                    <input type="text" inputmode="decimal" autocomplete="off" class="form-control gst" value="0">
+                </td>
+                <td>
+                    <input type="text" class="form-control readonly-box final-price" readonly value="0.00">
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger remove-row">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }
+
+    function refreshRowNumbers() {
+        const rows = document.querySelectorAll('#purchase_table_body tr');
+        rows.forEach((row, index) => {
+            row.querySelector('td').textContent = index + 1;
+        });
+    }
+
+    function calculateRowLineTotal(row) {
+        const quantity = parseInt(row.querySelector('.quantity')?.value) || 0;
+        const price = parseFloat(row.querySelector('.price')?.value) || 0;
+        const gst = parseFloat(row.querySelector('.gst')?.value) || 0;
+
+        const baseTotal = quantity * price;
+        const gstAmount = baseTotal * gst / 100;
+        return baseTotal + gstAmount;
+    }
+
+    function updateFinalPrice(row) {
+        const finalPriceInput = row.querySelector('.final-price');
+        const lineTotal = calculateRowLineTotal(row);
+        finalPriceInput.value = lineTotal.toFixed(2);
+    }
+
+    function calculateTotalAmount() {
+        let total = 0;
+
+        document.querySelectorAll('#purchase_table_body tr').forEach((row) => {
+            total += calculateRowLineTotal(row);
+        });
+
+        document.getElementById('purchase_total_display').textContent = `₹${total.toFixed(2)}`;
+        return total;
+    }
+
+    function collectRows() {
+        const rows = document.querySelectorAll('#purchase_table_body tr');
+        const data = [];
+
+        rows.forEach((row) => {
+            data.push({
+                item_name: row.querySelector('.item-name').value.trim(),
+                category_name: row.querySelector('.category-name').value.trim(),
+                item_description: row.querySelector('.item-description').value.trim(),
+                quantity: row.querySelector('.quantity').value.trim(),
+                price: row.querySelector('.price').value.trim(),
+                gst_percentage: row.querySelector('.gst').value.trim()
+            });
+        });
+
+        return data;
+    }
+
+    function fetchVendorDetails() {
+        const vendorName = document.getElementById('vendor_name').value.trim();
+
+        if (!vendorName) {
+            document.getElementById('vendor_phone_number').value = '';
+            document.getElementById('vendor_email').value = '';
+            document.getElementById('vendor_gst_number').value = '';
+            document.getElementById('vendor_address').value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('vendor_name', vendorName);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch("{% url 'get-vendor-details' %}", {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.found) {
+                document.getElementById('vendor_phone_number').value = data.phone_number || '';
+                document.getElementById('vendor_email').value = data.email || '';
+                document.getElementById('vendor_gst_number').value = data.gst_number || '';
+                document.getElementById('vendor_address').value = data.address || '';
+            } else {
+                document.getElementById('vendor_phone_number').value = '';
+                document.getElementById('vendor_email').value = '';
+                document.getElementById('vendor_gst_number').value = '';
+                document.getElementById('vendor_address').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('vendor_phone_number').value = '';
+            document.getElementById('vendor_email').value = '';
+            document.getElementById('vendor_gst_number').value = '';
+            document.getElementById('vendor_address').value = '';
+        });
+    }
+
+    function resetPurchaseForm() {
+        const purchaseForm = document.getElementById('purchase_form');
+        const tableBody = document.getElementById('purchase_table_body');
+
+        purchaseForm.reset();
+
+        document.getElementById('vendor_name').value = '';
+        document.getElementById('vendor_phone_number').value = '';
+        document.getElementById('vendor_email').value = '';
+        document.getElementById('vendor_gst_number').value = '';
+        document.getElementById('vendor_address').value = '';
+        document.getElementById('delivery_date').value = '';
+        document.getElementById('purchase_description').value = '';
+        document.getElementById('payment_mode').selectedIndex = 0;
+        document.getElementById('amount_paid').value = '0.00';
+        document.getElementById('purchase_total_display').textContent = '₹0.00';
+
+        rowCount = 0;
+        tableBody.innerHTML = '';
+        tableBody.insertAdjacentHTML('beforeend', createRow());
+        calculateTotalAmount();
+    }
+
+    function setSubmittingState(state) {
+        const saveBtn = document.getElementById('save_purchase_btn');
+        const addRowBtn = document.getElementById('add_row_btn');
+
+        isSubmitting = state;
+        saveBtn.disabled = state;
+        addRowBtn.disabled = state;
+
+        if (state) {
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+        } else {
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Create Purchase';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tableBody = document.getElementById('purchase_table_body');
+        const addRowBtn = document.getElementById('add_row_btn');
+        const purchaseForm = document.getElementById('purchase_form');
+        const amountPaidInput = document.getElementById('amount_paid');
+        const vendorNameInput = document.getElementById('vendor_name');
+
+        function addRow() {
+            tableBody.insertAdjacentHTML('beforeend', createRow());
+            calculateTotalAmount();
+        }
+
+        addRow();
+
+        vendorNameInput.addEventListener('change', fetchVendorDetails);
+        vendorNameInput.addEventListener('blur', fetchVendorDetails);
+
+        addRowBtn.addEventListener('click', function () {
+            if (isSubmitting) return;
+            addRow();
+        });
+
+        amountPaidInput.addEventListener('input', function () {
+            this.value = cleanDecimal(this.value);
+        });
+
+        amountPaidInput.addEventListener('blur', function () {
+            const value = parseFloat(this.value) || 0;
+            this.value = value.toFixed(2);
+        });
+
+        tableBody.addEventListener('input', function (e) {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            if (e.target.classList.contains('quantity')) {
+                e.target.value = cleanInteger(e.target.value);
+            }
+
+            if (e.target.classList.contains('price') || e.target.classList.contains('gst')) {
+                e.target.value = cleanDecimal(e.target.value);
+            }
+
+            updateFinalPrice(row);
+            calculateTotalAmount();
+        });
+
+        tableBody.addEventListener('blur', function (e) {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            if (e.target.classList.contains('quantity')) {
+                const value = parseInt(e.target.value) || 1;
+                e.target.value = value;
+            }
+
+            if (e.target.classList.contains('price')) {
+                const value = parseFloat(e.target.value) || 0;
+                e.target.value = value.toFixed(2);
+            }
+
+            if (e.target.classList.contains('gst')) {
+                const value = parseFloat(e.target.value) || 0;
+                e.target.value = value.toFixed(2);
+            }
+
+            updateFinalPrice(row);
+            calculateTotalAmount();
+        }, true);
+
+        tableBody.addEventListener('click', function (e) {
+            const removeBtn = e.target.closest('.remove-row');
+            if (!removeBtn || isSubmitting) return;
+
+            removeBtn.closest('tr').remove();
+
+            const rows = document.querySelectorAll('#purchase_table_body tr');
+            if (rows.length === 0) {
+                rowCount = 0;
+            }
+
+            refreshRowNumbers();
+            calculateTotalAmount();
+        });
+
+        purchaseForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (isSubmitting) {
+                return;
+            }
+
+            const vendorName = document.getElementById('vendor_name').value.trim();
+            const vendorPhoneNumber = document.getElementById('vendor_phone_number').value.trim();
+            const vendorEmail = document.getElementById('vendor_email').value.trim();
+            const vendorGstNumber = document.getElementById('vendor_gst_number').value.trim();
+            const vendorAddress = document.getElementById('vendor_address').value.trim();
+
+            const deliveryDate = document.getElementById('delivery_date').value;
+            const paymentMode = document.getElementById('payment_mode').value;
+            const amountPaid = document.getElementById('amount_paid').value.trim();
+            const description = document.getElementById('purchase_description').value.trim();
+            const rows = collectRows();
+            const totalAmount = calculateTotalAmount();
+
+            if (!vendorName) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Vendor is required.'
+                });
+                return;
+            }
+
+            if (amountPaid === '' || parseFloat(amountPaid) < 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Amount paid cannot be empty or negative.'
+                });
+                return;
+            }
+
+            if (parseFloat(amountPaid) > totalAmount) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Amount paid cannot exceed total amount.'
+                });
+                return;
+            }
+
+            if (rows.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Add at least one product row.'
+                });
+                return;
+            }
+
+            for (const row of rows) {
+                if (!row.item_name) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Product name is required in every row.'
+                    });
+                    return;
+                }
+
+                if (!row.quantity || parseInt(row.quantity) <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Quantity must be greater than 0 for product: ${row.item_name || 'Row'}`
+                    });
+                    return;
+                }
+
+                if (row.price === '' || parseFloat(row.price) < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Price cannot be empty or negative for product: ${row.item_name || 'Row'}`
+                    });
+                    return;
+                }
+
+                if (row.gst_percentage === '' || parseFloat(row.gst_percentage) < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `GST cannot be empty or negative for product: ${row.item_name || 'Row'}`
+                    });
+                    return;
+                }
+            }
+
+            const payload = {
+                vendor_name: vendorName,
+                vendor_phone_number: vendorPhoneNumber,
+                vendor_email: vendorEmail,
+                vendor_gst_number: vendorGstNumber,
+                vendor_address: vendorAddress,
+                delivery_date: deliveryDate,
+                payment_mode: paymentMode,
+                amount_paid: amountPaid,
+                description: description,
+                rows: rows
+            };
+
+            setSubmittingState(true);
+
+            fetch("{% url 'purchase-create' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    resetPurchaseForm();
+                    setSubmittingState(false);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Purchase created successfully!'
+                    }).then(() => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    });
+                } else {
+                    setSubmittingState(false);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Something went wrong.'
+                    });
+                }
+            })
+            .catch(() => {
+                setSubmittingState(false);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong while saving purchase.'
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

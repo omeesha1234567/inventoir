@@ -6,235 +6,624 @@
 {% block stylesheets %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css">
+
+<style>
+    .sale-page {
+        background: #f5f6fa;
+        min-height: 100vh;
+    }
+
+    .sale-card {
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+        overflow: hidden;
+    }
+
+    .sale-card-header {
+        background: #1a1c8f;
+        color: white;
+        padding: 16px 20px;
+    }
+
+    .sale-card-header h5 {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .search-box-wrapper {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 25px;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 9999;
+        font-size: 0.95rem;
+    }
+
+    .custom-search-select + .select2-container {
+        width: 100% !important;
+    }
+
+    .custom-search-select + .select2-container .select2-selection--single {
+        height: 50px;
+        border: 1px solid #d1d5db;
+        border-radius: 14px;
+        padding-left: 42px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 5px 14px rgba(17, 24, 39, 0.06);
+        transition: all 0.2s ease;
+        background: #ffffff;
+    }
+
+    .custom-search-select + .select2-container.select2-container--focus .select2-selection--single {
+        border-color: #1a1c8f;
+        box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.12);
+    }
+
+    .custom-search-select + .select2-container .select2-selection__rendered {
+        color: #374151;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 50px;
+        padding-left: 0;
+    }
+
+    .custom-search-select + .select2-container .select2-selection__placeholder {
+        color: #9ca3af;
+        font-weight: 500;
+    }
+
+    .custom-search-select + .select2-container .select2-selection__arrow {
+        height: 50px;
+        right: 12px;
+    }
+
+    .search-box-wrapper .select2-container--open .select2-selection--single {
+        visibility: hidden;
+    }
+
+    .search-box-wrapper .select2-container--open .select2-dropdown {
+        top: -50px;
+        border: none;
+        border-radius: 14px;
+        overflow: visible;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .search-box-wrapper .select2-container--open .select2-search--dropdown {
+        padding: 0;
+        background: transparent;
+    }
+
+    .search-box-wrapper .select2-container--open .select2-search--dropdown .select2-search__field {
+        height: 50px;
+        width: 100% !important;
+        border: 1px solid #1a1c8f;
+        border-radius: 14px;
+        padding-left: 45px;
+        padding-right: 14px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        outline: none;
+        color: #374151;
+        box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.12);
+    }
+
+    .search-box-wrapper .select2-results {
+        margin-top: 8px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 16px 35px rgba(17, 24, 39, 0.14);
+    }
+
+    .select2-results__option {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    .select2-results__option--highlighted {
+        background-color: #1a1c8f !important;
+        color: #ffffff !important;
+    }
+
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-result-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: #eef2ff;
+        color: #1a1c8f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .select2-results__option--highlighted .search-result-icon {
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+    }
+
+    .search-result-name {
+        color: #111827;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .search-result-text {
+        color: #6b7280;
+        font-size: 0.78rem;
+    }
+
+    .stock-available {
+        color: #15803d;
+        font-weight: 700;
+    }
+
+    .stock-empty {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .select2-results__option--highlighted .search-result-name,
+    .select2-results__option--highlighted .search-result-text,
+    .select2-results__option--highlighted .stock-available,
+    .select2-results__option--highlighted .stock-empty {
+        color: #ffffff;
+    }
+
+    .table thead th {
+        background: #f8f9ff;
+        color: #1a1c8f;
+        font-weight: 700;
+        vertical-align: middle;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .form-control {
+        border-radius: 12px;
+        min-height: 44px;
+    }
+
+    .form-control:focus {
+        border-color: #1a1c8f;
+        box-shadow: 0 0 0 4px rgba(26, 28, 143, 0.10);
+    }
+
+    .btn-main {
+        background: #1a1c8f;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        padding: 12px;
+    }
+
+    .btn-main:hover {
+        background: #11136f;
+        color: white;
+    }
+
+    .btn-back {
+        border-color: #1a1c8f;
+        color: #1a1c8f;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .btn-back:hover {
+        background: #1a1c8f;
+        color: white;
+    }
+
+    .qty-input,
+    .margin-input {
+        min-width: 90px;
+        text-align: center;
+    }
+
+    .gst-box {
+        min-width: 80px;
+        text-align: center;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #1a1c8f;
+        font-weight: 700;
+        padding: 8px 10px;
+        border-radius: 10px;
+    }
+</style>
 {% endblock stylesheets %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="mb-4">
-        <a href="{% url 'saleslist' %}" class="btn btn-outline-success">
-            <i class="fas fa-arrow-left me-2"></i>
-            Go back
-        </a>
-    </div>
+<div class="sale-page">
+    <div class="container py-5">
 
-    <form id="form_sale" action="{% url 'sale-create' %}" class="saleForm" method="post">
-        <div class="row">
-            <div class="col-lg-8 mb-4">
-                <div class="card border-light shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Sale Items</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <label for="searchbox_items" class="form-label">Search Item:</label>
-                            <select class="form-select select2" name="searchbox_items" id="searchbox_items" aria-label="Search items"></select>
-                        </div>
-
-                        <button type="button" class="btn btn-danger btn-sm mb-4 deleteAll">
-                            <i class="fas fa-trash-alt me-2"></i> Delete All Items
-                        </button>
-
-                        <div class="table-responsive my-3">
-                            <table class="table table-bordered table-striped" id="table_items">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
-                                        <th>Total</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 mb-4">
-                <div class="card border-light shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Sale Details</h5>
-                    </div>
-                    <div class="card-body">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label for="customer_name" class="form-label">Customer</label>
-                            <input
-                                name="customer_name"
-                                type="text"
-                                class="form-control"
-                                id="customer_name"
-                                list="customer-options"
-                                placeholder="Type customer name or choose existing one"
-                                aria-label="Customer"
-                                required
-                            >
-                            <datalist id="customer-options">
-                                {% for customer in customers %}
-                                    <option value="{{ customer.get_full_name }}"></option>
-                                {% endfor %}
-                            </datalist>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="sub_total" class="form-label">Subtotal</label>
-                            <input name="sub_total" type="number" class="form-control" id="sub_total" aria-label="Subtotal" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="tax_percentage" class="form-label">Tax Inclusive (%)</label>
-                            <input name="tax_percentage" type="number" class="form-control" id="tax_percentage" aria-label="Tax Inclusive" value="0" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="tax_amount" class="form-label">Tax Amount</label>
-                            <input name="tax_amount" type="number" class="form-control" id="tax_amount" aria-label="Tax Amount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="grand_total" class="form-label">Grand Total</label>
-                            <input name="grand_total" type="number" class="form-control" id="grand_total" aria-label="Grand Total" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount_paid" class="form-label">Amount Payed</label>
-                            <input name="amount_paid" type="number" class="form-control" id="amount_paid" aria-label="Amount Paid" required>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Create Sale</button>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-4">
+            <a href="{% url 'saleslist' %}" class="btn btn-back px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i>
+                Go back
+            </a>
         </div>
-    </form>
+
+        <form id="form_sale" action="{% url 'sale-create' %}" class="saleForm" method="post">
+            <div class="row">
+                <div class="col-lg-9 mb-4">
+                    <div class="card sale-card">
+                        <div class="sale-card-header">
+                            <h5>Sale Items</h5>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <label for="searchbox_items" class="form-label">Search Item</label>
+
+                                <div class="search-box-wrapper">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <select
+                                        class="form-select select2 custom-search-select"
+                                        name="searchbox_items"
+                                        id="searchbox_items"
+                                        aria-label="Search items">
+                                    </select>
+                                </div>
+
+                                <small class="text-muted d-block mt-2">
+                                    Type item name to add it into the sale list.
+                                </small>
+                            </div>
+
+                            <button type="button" class="btn btn-danger btn-sm mb-4 deleteAll">
+                                <i class="fas fa-trash-alt me-2"></i> Delete All Items
+                            </button>
+
+                            <div class="table-responsive my-3">
+                                <table class="table table-bordered table-striped align-middle" id="table_items">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>GST %</th>
+                                            <th>Margin</th>
+                                            <th>Quantity</th>
+                                            <th>Subtotal</th>
+                                            <th>Total</th>
+                                            <th class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 mb-4">
+                    <div class="card sale-card">
+                        <div class="sale-card-header">
+                            <h5>Sale Details</h5>
+                        </div>
+
+                        <div class="card-body p-4">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="customer_name" class="form-label">Customer</label>
+                                <input
+                                    name="customer_name"
+                                    type="text"
+                                    class="form-control"
+                                    id="customer_name"
+                                    list="customer-options"
+                                    placeholder="Type customer name or choose existing one"
+                                    aria-label="Customer"
+                                    required
+                                >
+                                <datalist id="customer-options">
+                                    {% for customer in customers %}
+                                        <option value="{{ customer.get_full_name }}"></option>
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="customer_phone" class="form-label">Phone Number</label>
+                                <input
+                                    name="customer_phone"
+                                    type="text"
+                                    class="form-control"
+                                    id="customer_phone"
+                                    placeholder="Enter phone number"
+                                    aria-label="Phone Number"
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="customer_address" class="form-label">Address</label>
+                                <textarea
+                                    name="customer_address"
+                                    class="form-control"
+                                    id="customer_address"
+                                    rows="3"
+                                    placeholder="Enter address"
+                                    aria-label="Address"
+                                ></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="grand_total" class="form-label">Grand Total</label>
+                                <input
+                                    name="grand_total"
+                                    type="number"
+                                    class="form-control"
+                                    id="grand_total"
+                                    aria-label="Grand Total"
+                                    step="0.01"
+                                    readonly
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="amount_paid" class="form-label">Amount Paid</label>
+                                <input
+                                    name="amount_paid"
+                                    type="number"
+                                    class="form-control"
+                                    id="amount_paid"
+                                    aria-label="Amount Paid"
+                                    step="0.01"
+                                    required
+                                >
+                            </div>
+
+                            <button type="submit" class="btn btn-main w-100">
+                                Create Sale
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
 </div>
 {% endblock content %}
 
 {% block javascripts %}
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js" defer></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-touchspin/3.1.0/jquery.bootstrap-touchspin.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js" defer></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.15/dist/sweetalert2.all.min.js"></script>
 
 <script>
     function roundTo(n, digits) {
         if (digits === undefined) {
             digits = 0;
         }
-
         var multiplicator = Math.pow(10, digits);
         n = parseFloat((n * multiplicator).toFixed(11));
         return Math.round(n) / multiplicator;
     }
 
+    function formatMoney(value) {
+        return '₹' + parseFloat(value || 0).toFixed(2);
+    }
+
+    function cleanDecimal(value) {
+        value = String(value || '').replace(/[^\d.]/g, '');
+        var parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        return value;
+    }
+
+    function cleanInteger(value) {
+        return String(value || '').replace(/[^\d]/g, '');
+    }
+
     var number = 1;
+    var tblItems;
 
     var sale = {
         products: {
             customer: 0,
-            sub_total: 0.00,
             grand_total: 0.00,
-            tax_amount: 0.00,
-            tax_percentage: 0.00,
-            amount_payed: 0.00,
+            amount_paid: 0.00,
             amount_change: 0.00,
             items: []
         },
-        calculate_sale: function () {
-            var sub_total = 0.00;
-            var tax_percentage = $('input[name="tax_percentage"]').val();
 
-            $.each(this.products.items, function (pos, dict) {
-                dict.pos = pos;
-                dict.total_item = roundTo(dict.quantity * dict.price, 2);
-                sub_total += roundTo(dict.total_item, 2);
+        calculateItemValues: function (item) {
+            var basePrice = parseFloat(item.price) || 0;
+            var gstPercentage = parseFloat(item.gst_percentage) || 0;
+            var margin = parseFloat(item.margin) || 0;
+            var quantity = parseInt(item.quantity) || 1;
+
+            var priceWithMargin = roundTo(basePrice + margin, 2);
+            var gstAmountPerUnit = roundTo(priceWithMargin * gstPercentage / 100, 2);
+            var finalUnitPrice = roundTo(priceWithMargin + gstAmountPerUnit, 2);
+
+            item.subtotal = roundTo(priceWithMargin * quantity, 2);
+            item.total_item = roundTo(finalUnitPrice * quantity, 2);
+        },
+
+        calculate_sale: function () {
+            var grand_total = 0.00;
+
+            $.each(this.products.items, function (pos, item) {
+                item.pos = pos;
+                sale.calculateItemValues(item);
+                grand_total += parseFloat(item.total_item) || 0;
             });
 
-            this.products.sub_total = roundTo(sub_total, 2);
-            this.products.grand_total = roundTo(this.products.sub_total, 2);
-            this.products.tax_amount = roundTo(this.products.sub_total * (tax_percentage / 100), 2);
-
-            $('input[name="sub_total"]').val(this.products.sub_total);
-            $('input[name="tax_amount"]').val(this.products.tax_amount);
-            $('input[name="grand_total"]').val(this.products.grand_total);
+            this.products.grand_total = roundTo(grand_total, 2);
+            $('input[name="grand_total"]').val(this.products.grand_total.toFixed(2));
         },
+
+        updateRowDisplay: function (rowIndex) {
+            if (!tblItems) return;
+
+            var item = this.products.items[rowIndex];
+            if (!item) return;
+
+            this.calculateItemValues(item);
+
+            var rowNode = tblItems.row(rowIndex).node();
+            if (!rowNode) return;
+
+            $('td:eq(6)', rowNode).html(formatMoney(item.subtotal));
+            $('td:eq(7)', rowNode).html(formatMoney(item.total_item));
+
+            this.calculate_sale();
+        },
+
         add_item: function (item) {
+            item.price = parseFloat(item.price) || 0;
+            item.gst_percentage = parseFloat(item.gst_percentage) || 0;
+            item.margin = 0;
+            item.quantity = parseInt(item.quantity) || 1;
+            this.calculateItemValues(item);
             this.products.items.push(item);
             this.list_item();
         },
+
         list_item: function () {
             this.calculate_sale();
 
             tblItems = $("#table_items").DataTable({
                 destroy: true,
+                searching: false,
+                paging: false,
+                info: false,
+                ordering: false,
                 data: this.products.items,
                 columns: [
                     {"data": "number"},
                     {"data": "name"},
                     {"data": "price"},
+                    {"data": "gst_percentage"},
+                    {"data": "margin"},
                     {"data": "quantity"},
+                    {"data": "subtotal"},
                     {"data": "total_item"},
-                    {"data": "id"},
+                    {"data": "id"}
                 ],
                 columnDefs: [
                     {
-                        class: 'text-center',
+                        className: 'text-end',
+                        targets: [2, 6, 7],
+                        render: function (data) {
+                            return formatMoney(data);
+                        }
+                    },
+                    {
+                        className: 'text-center',
                         targets: [3],
-                        render: function (data, type, row) {
-                            return '<input name="quantity" type="text" class="form-control form-control-xs text-center input-sm" autocomplete="off" value="' + row.quantity + '">';
-                        },
+                        render: function (data) {
+                            return '<div class="gst-box">' + parseFloat(data || 0).toFixed(2) + '%</div>';
+                        }
                     },
                     {
-                        class: 'text-right',
-                        targets: [2, 4],
-                        render: function (data, type, row) {
-                            return parseFloat(data).toFixed(2) + ' $';
-                        },
+                        className: 'text-center',
+                        targets: [4],
+                        render: function (data, type, row, meta) {
+                            return '<input name="margin" type="text" inputmode="decimal" autocomplete="off" class="form-control margin-input" data-row="' + meta.row + '" value="' + parseFloat(data || 0).toFixed(2) + '">';
+                        }
                     },
                     {
-                        class: 'text-center',
+                        className: 'text-center',
+                        targets: [5],
+                        render: function (data, type, row, meta) {
+                            return '<input name="quantity" type="text" inputmode="numeric" autocomplete="off" class="form-control qty-input" data-row="' + meta.row + '" value="' + row.quantity + '">';
+                        }
+                    },
+                    {
+                        className: 'text-center',
                         targets: [-1],
-                        orderable: false,
-                        render: function (data, type, row) {
-                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete item"> <i class="fas fa-trash-alt fa-xs"></i> </a>';
-                        },
-                    },
-                ],
-                rowCallback(row, data, displayNun, displayIndex, dataIndex) {
-                    $(row).find("input[name='quantity']").TouchSpin({
-                        min: 1,
-                        max: 100,
-                        step: 1,
-                        decimals: 0,
-                        boostat: 1,
-                        maxboostedstep: 3,
-                        postfix: ''
-                    });
-                },
+                        render: function () {
+                            return '<a rel="delete" type="button" class="btn btn-sm btn-danger" title="Delete item"><i class="fas fa-trash-alt fa-xs"></i></a>';
+                        }
+                    }
+                ]
             });
-        },
+        }
     };
 
+    function fetchCustomerDetails() {
+        var customerName = $('#customer_name').val().trim();
+
+        if (!customerName) {
+            $('#customer_phone').val('');
+            $('#customer_address').val('');
+            return;
+        }
+
+        $.ajax({
+            url: "{% url 'get-customer-details' %}",
+            type: 'POST',
+            data: {
+                customer_name: customerName,
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function (response) {
+                if (response.found) {
+                    $('#customer_phone').val(response.phone || '');
+                    $('#customer_address').val(response.address || '');
+                } else {
+                    $('#customer_phone').val('');
+                    $('#customer_address').val('');
+                }
+            },
+            error: function () {
+                $('#customer_phone').val('');
+                $('#customer_address').val('');
+            }
+        });
+    }
+
     $(document).ready(function () {
-        $("input[name='tax_percentage']").TouchSpin({
-            min: 0,
-            max: 100,
-            step: 1,
-            decimals: 2,
-            boostat: 5,
-            maxboostedstep: 10,
-            postfix: '%'
-        }).on('change', function () {
-            sale.calculate_sale();
+        $('#customer_name').on('change blur', function () {
+            fetchCustomerDetails();
         });
 
         $('#searchbox_items').select2({
             delay: 250,
-            placeholder: 'Search an item',
+            placeholder: 'Search product by name...',
             minimumInputLength: 1,
             allowClear: true,
+            width: '100%',
+            dropdownParent: $('.search-box-wrapper'),
             templateResult: template_item_searchbox,
+            templateSelection: function (repo) {
+                return repo.name || repo.text || 'Search product by name...';
+            },
             ajax: {
                 url: "{% url 'get_items' %}",
                 type: 'POST',
@@ -250,17 +639,63 @@
                     };
                 }
             }
+        }).on('select2:open', function () {
+            setTimeout(function () {
+                var searchField = document.querySelector('.select2-search__field');
+                if (searchField) {
+                    searchField.focus();
+                }
+            }, 50);
         }).on('select2:select', function (e) {
             var data = e.params.data;
+            var stock = parseInt(data.stock) || 0;
+
+            if (stock <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Insufficient Stock',
+                    text: data.name + ' is out of stock!'
+                });
+                $('#searchbox_items').val('').trigger('change.select2');
+                return;
+            }
+
+            var existingItem = sale.products.items.find(function (item) {
+                return parseInt(item.id) === parseInt(data.id);
+            });
+
+            if (existingItem) {
+                if ((parseInt(existingItem.quantity) || 0) + 1 > (parseInt(existingItem.stock) || 0)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stock Limit Reached',
+                        text: 'Only ' + existingItem.stock + ' unit(s) available for ' + existingItem.name
+                    });
+                    $('#searchbox_items').val('').trigger('change.select2');
+                    return;
+                }
+
+                existingItem.quantity = parseInt(existingItem.quantity) + 1;
+                sale.list_item();
+                $('#searchbox_items').val('').trigger('change.select2');
+                return;
+            }
+
             data.number = number;
+            data.stock = stock;
+            data.price = parseFloat(data.price) || 0;
+            data.gst_percentage = parseFloat(data.gst_percentage) || 0;
+            data.quantity = 1;
+            data.margin = 0;
+
             number++;
             sale.add_item(data);
-            $(this).val('').trigger('change.select2');
+            $('#searchbox_items').val('').trigger('change.select2');
         });
 
         $('#table_items tbody').on('click', 'a[rel="delete"]', function () {
-            var tr = tblItems.cell($(this).closest('td, li')).index();
-            item_name = (tblItems.row(tr.row).data().name);
+            var tr = tblItems.cell($(this).closest('td')).index();
+            var item_name = tblItems.row(tr.row).data().name;
 
             Swal.fire({
                 customClass: {
@@ -274,7 +709,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Delete',
                 cancelButtonText: 'Cancel',
-                reverseButtons: true,
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     sale.products.items.splice(tr.row, 1);
@@ -282,16 +717,86 @@
                     Swal.fire('The item was eliminated!', '', 'success');
                 }
             });
-        }).on('change keyup', 'input[name="quantity"]', function () {
-            var quantity = parseInt($(this).val());
-            var tr = tblItems.cell($(this).closest('td, li')).index();
-            sale.products.items[tr.row].quantity = quantity;
-            sale.calculate_sale();
-            $('td:eq(4)', tblItems.row(tr.row).node()).html(sale.products.items[tr.row].total_item + ' $');
+        });
+
+        $('#table_items tbody').on('input', 'input[name="quantity"]', function () {
+            var rowIndex = parseInt($(this).attr('data-row'));
+            var item = sale.products.items[rowIndex];
+            if (!item) return;
+
+            var cleanedValue = cleanInteger($(this).val());
+            $(this).val(cleanedValue);
+
+            if (cleanedValue === '') {
+                return;
+            }
+
+            var quantity = parseInt(cleanedValue) || 1;
+            var stock = parseInt(item.stock) || 0;
+
+            if (quantity > stock) {
+                quantity = stock;
+                $(this).val(stock);
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Insufficient Stock',
+                    text: 'Only ' + stock + ' unit(s) available for ' + item.name
+                });
+            }
+
+            if (quantity < 1) {
+                quantity = 1;
+                $(this).val(1);
+            }
+
+            item.quantity = quantity;
+            sale.updateRowDisplay(rowIndex);
+        });
+
+        $('#table_items tbody').on('blur', 'input[name="quantity"]', function () {
+            var rowIndex = parseInt($(this).attr('data-row'));
+            var item = sale.products.items[rowIndex];
+            if (!item) return;
+
+            $(this).val(parseInt(item.quantity) || 1);
+        });
+
+        $('#table_items tbody').on('input', 'input[name="margin"]', function () {
+            var rowIndex = parseInt($(this).attr('data-row'));
+            var item = sale.products.items[rowIndex];
+            if (!item) return;
+
+            var cleanedValue = cleanDecimal($(this).val());
+            $(this).val(cleanedValue);
+
+            if (cleanedValue === '') {
+                item.margin = 0;
+                sale.updateRowDisplay(rowIndex);
+                return;
+            }
+
+            var margin = parseFloat(cleanedValue);
+            if (isNaN(margin) || margin < 0) {
+                margin = 0;
+            }
+
+            item.margin = roundTo(margin, 2);
+            sale.updateRowDisplay(rowIndex);
+        });
+
+        $('#table_items tbody').on('blur', 'input[name="margin"]', function () {
+            var rowIndex = parseInt($(this).attr('data-row'));
+            var item = sale.products.items[rowIndex];
+            if (!item) return;
+
+            $(this).val(parseFloat(item.margin || 0).toFixed(2));
         });
 
         $('.deleteAll').on('click', function () {
-            if (sale.products.items.length === 0) return false;
+            if (sale.products.items.length === 0) {
+                return false;
+            }
 
             Swal.fire({
                 customClass: {
@@ -304,7 +809,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Delete all',
                 cancelButtonText: 'Cancel',
-                reverseButtons: true,
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     sale.products.items = [];
@@ -315,19 +820,29 @@
         });
 
         tblItems = $('#table_items').DataTable({
-            columnDefs: [
-                {
-                    targets: [-1],
-                    orderable: false,
-                }
-            ],
+            searching: false,
+            paging: false,
+            info: false,
+            ordering: false
         });
 
         function template_item_searchbox(repo) {
+            if (repo.loading) {
+                return repo.text;
+            }
+
+            var stock = parseInt(repo.stock) || 0;
+            var stockClass = stock > 0 ? 'stock-available' : 'stock-empty';
+            var stockText = stock > 0 ? stock + ' in stock' : 'Out of stock';
+
             return $(`
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <small class="card-title">${repo.name}</small>
+                <div class="search-result-item">
+                    <div class="search-result-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div>
+                        <div class="search-result-name">${repo.name}</div>
+                        <div class="search-result-text ${stockClass}">${stockText}</div>
                     </div>
                 </div>
             `);
@@ -336,21 +851,12 @@
         $('form#form_sale').on('submit', function (event) {
             event.preventDefault();
 
-            var amountPaid = parseFloat($('input[name="amount_paid"]').val());
-            var grandTotal = parseFloat($('input[name="grand_total"]').val());
+            var amountPaid = parseFloat($('input[name="amount_paid"]').val()) || 0;
+            var grandTotal = parseFloat($('input[name="grand_total"]').val()) || 0;
             var amountChange = roundTo(amountPaid - grandTotal, 2);
             var customerName = $('input[name="customer_name"]').val().trim();
-
-            var formData = {
-                customer_name: customerName,
-                sub_total: $('input[name="sub_total"]').val(),
-                tax_percentage: $('input[name="tax_percentage"]').val(),
-                tax_amount: $('input[name="tax_amount"]').val(),
-                grand_total: grandTotal,
-                amount_paid: amountPaid,
-                amount_change: amountChange,
-                items: sale.products.items
-            };
+            var phone = $('#customer_phone').val().trim();
+            var address = $('#customer_address').val().trim();
 
             if (!customerName) {
                 Swal.fire({
@@ -361,14 +867,61 @@
                 return;
             }
 
-            if (isNaN(amountChange)) {
+            if (sale.products.items.length === 0) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Amount change is required!'
+                    text: 'Please add at least one item!'
                 });
                 return;
             }
+
+            if ($('input[name="amount_paid"]').val().trim() === '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Amount paid is required!'
+                });
+                return;
+            }
+
+            var invalidItem = sale.products.items.find(function (item) {
+                return parseInt(item.quantity) > parseInt(item.stock);
+            });
+
+            if (invalidItem) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Insufficient Stock',
+                    text: 'Only ' + invalidItem.stock + ' unit(s) available for ' + invalidItem.name
+                });
+                return;
+            }
+
+            var payloadItems = sale.products.items.map(function (item) {
+                return {
+                    id: item.id,
+                    price: item.price,
+                    gst_percentage: item.gst_percentage,
+                    margin: item.margin,
+                    quantity: item.quantity,
+                    subtotal: item.subtotal,
+                    total_item: item.total_item
+                };
+            });
+
+            var formData = {
+                customer_name: customerName,
+                phone: phone,
+                address: address,
+                sub_total: grandTotal,
+                tax_percentage: 0,
+                tax_amount: 0,
+                grand_total: grandTotal,
+                amount_paid: amountPaid,
+                amount_change: amountChange,
+                items: payloadItems
+            };
 
             var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
 
@@ -384,22 +937,35 @@
                     sale.products.items = [];
                     sale.list_item();
                     $('form#form_sale').trigger('reset');
+                    $('#customer_phone').val('');
+                    $('#customer_address').val('');
+                    $('input[name="grand_total"]').val('');
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
                         text: 'Sale has been completed successfully!'
+                    }).then(function () {
+                        if (response.redirect) {
+                            window.location.href = response.redirect;
+                        }
                     });
                 },
                 error: function (xhr) {
+                    var message = 'An error occurred while processing the sale!';
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: xhr.responseJSON.message || 'An error occurred while processing the sale!'
+                        text: message
                     });
                 }
             });
         });
     });
 </script>
-
 {% endblock javascripts %}

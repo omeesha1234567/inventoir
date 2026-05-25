@@ -1,6 +1,5 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
 
 {% block title %}Update Purchase{% endblock %}
 
@@ -21,11 +20,11 @@
                         </div>
 
                         <h3 class="fw-bold mb-1" style="color: #1f2937;">
-                            Create / Update Purchase
+                            Update Purchase
                         </h3>
 
                         <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
-                            Manage purchase transaction details
+                            Edit grouped purchase header only
                         </p>
                     </div>
 
@@ -56,17 +55,18 @@
                         }
 
                         .submit-btn {
-                            background-color: #1a1c8f;
-                            border: none;
-                            border-radius: 12px;
-                            font-weight: 600;
-                            color: white;
-                            padding: 11px 24px;
+                            background-color: #1a1c8f !important;
+                            border: none !important;
+                            border-radius: 12px !important;
+                            font-weight: 600 !important;
+                            color: #ffffff !important;
+                            padding: 11px 24px !important;
                             transition: all 0.25s ease;
                         }
 
                         .submit-btn:hover {
-                            background-color: #151774;
+                            background-color: #151774 !important;
+                            color: #ffffff !important;
                             transform: translateY(-1px);
                             box-shadow: 0 8px 18px rgba(26, 28, 143, 0.18);
                         }
@@ -76,12 +76,6 @@
                             font-weight: 600;
                             padding: 11px 20px;
                         }
-
-                        .helper-text {
-                            font-size: 0.85rem;
-                            color: #6b7280;
-                            margin-top: 6px;
-                        }
                     </style>
 
                     <form method="post" class="purchase-form">
@@ -89,19 +83,7 @@
                         {{ form.non_field_errors }}
 
                         <div class="row g-4 mb-3">
-                            <div class="col-md-4">
-                                <label>Item</label>
-                                {{ form.item_name }}
-                                <datalist id="item-options">
-                                    {% for item in items %}
-                                        <option value="{{ item.name }}"></option>
-                                    {% endfor %}
-                                </datalist>
-                                <div class="text-danger small mt-1">{{ form.item_name.errors }}</div>
-                                
-                            </div>
-
-                            <div class="col-md-4">
+                            <div class="col-md-12">
                                 <label>Vendor</label>
                                 {{ form.vendor_name }}
                                 <datalist id="vendor-options">
@@ -110,38 +92,6 @@
                                     {% endfor %}
                                 </datalist>
                                 <div class="text-danger small mt-1">{{ form.vendor_name.errors }}</div>
-                                
-                            </div>
-
-                            <div class="col-md-4">
-                                <label>Purchase Description</label>
-                                {{ form.description }}
-                                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-                            </div>
-                        </div>
-
-                        <div class="row g-4 mb-3">
-                            <div class="col-md-6">
-                                <label>Item Category</label>
-                                {{ form.category_name }}
-                                <datalist id="category-options">
-                                    {% for category in categories %}
-                                        <option value="{{ category.name }}"></option>
-                                    {% endfor %}
-                                </datalist>
-                                <div class="text-danger small mt-1">{{ form.category_name.errors }}</div>
-                                <div class="helper-text">
-                                    Required only if the item is new.
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label>Item Description</label>
-                                {{ form.item_description }}
-                                <div class="text-danger small mt-1">{{ form.item_description.errors }}</div>
-                                <div class="helper-text">
-                                    Required only if the item is new.
-                                </div>
                             </div>
                         </div>
 
@@ -153,28 +103,56 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label>Quantity</label>
-                                {{ form.quantity }}
-                                <div class="text-danger small mt-1">{{ form.quantity.errors }}</div>
+                                <label>Total Amount</label>
+                                <input type="text" class="form-control" value="₹{{ object.total_value }}" readonly>
                             </div>
                         </div>
 
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-4">
-                                <label>Status</label>
-                                {{ form.delivery_status }}
-                                <div class="text-danger small mt-1">{{ form.delivery_status.errors }}</div>
-                            </div>
+                        <div class="mb-4">
+                            <label>Purchase Note</label>
+                            {{ form.description }}
+                            <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                        </div>
 
-                            <div class="col-md-4">
-                                <label>Price</label>
-                                {{ form.price }}
-                                <div class="text-danger small mt-1">{{ form.price.errors }}</div>
+                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; background: #f8f9ff;">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Items in this Purchase</h6>
+                                <div class="table-responsive">
+                                    <table class="table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Item</th>
+                                                <th>Qty</th>
+                                                <th>Price</th>
+                                                <th>GST</th>
+                                                <th>Line Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for line in purchase_items %}
+                                            <tr>
+                                                <td>{{ forloop.counter }}</td>
+                                                <td>{{ line.item.name }}</td>
+                                                <td>{{ line.quantity }}</td>
+                                                <td>₹{{ line.price }}</td>
+                                                <td>{{ line.gst_percentage }}</td>
+                                                <td>₹{{ line.line_total }}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted">No items found</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <small class="text-muted">Items are shown for reference. Payment updates are handled from Purchase Details.</small>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <a href="{% url 'purchase-create' %}" class="btn btn-outline-secondary back-btn">
+                            <a href="{% url 'purchaseslist' %}" class="btn btn-outline-secondary back-btn">
                                 <i class="fas fa-arrow-left me-1"></i> Back
                             </a>
 
@@ -182,7 +160,6 @@
                                 <i class="fas fa-save me-1"></i> Save Purchase
                             </button>
                         </div>
-
                     </form>
 
                 </div>

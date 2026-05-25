@@ -1,20 +1,20 @@
 <div class="row g-4">
-    <div class="col-lg-4 col-md-12">
+    <div class="col-lg-6 col-md-12">
         <div class="chart-card h-100">
             <div class="chart-card-header">
                 <div>
-                    <h5 class="chart-title mb-1">Category Distribution</h5>
-                    <p class="chart-subtitle mb-0">Product category share</p>
+                    <h5 class="chart-title mb-1">Purchase Analytics</h5>
+                    <p class="chart-subtitle mb-0">Purchase activity over time</p>
                 </div>
             </div>
 
-            <div class="chart-wrapper pie-wrapper">
-                <canvas id="pieChart"></canvas>
+            <div class="chart-wrapper line-wrapper">
+                <canvas id="purchaseChart"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-8 col-md-12">
+    <div class="col-lg-6 col-md-12">
         <div class="chart-card h-100">
             <div class="chart-card-header">
                 <div>
@@ -31,143 +31,193 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    new Chart(pieCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ categories|safe }},
-            datasets: [{
-                data: {{ category_counts|safe }},
-                backgroundColor: [
-                    '#1a1c8f',
-                    '#4f46e5',
-                    '#6366f1',
-                    '#818cf8',
-                    '#a5b4fc',
-                    '#c7d2fe'
-                ],
-                borderColor: '#f8f8fb',
-                borderWidth: 4,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '72%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 18,
-                        color: '#6b7280',
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#111827',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    padding: 10,
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + context.raw;
-                        }
-                    }
-                },
-                title: {
-                    display: false
-                }
-            }
-        }
-    });
+    const salesLabels = {{ sale_dates_labels|safe|default:"[]" }};
+    const salesValues = {{ sale_dates_values|safe|default:"[]" }};
 
-    const lineCtx = document.getElementById('lineChart').getContext('2d');
-    new Chart(lineCtx, {
-        type: 'line',
-        data: {
-            labels: {{ sale_dates_labels|safe }},
-            datasets: [{
-                label: 'Sales',
-                data: {{ sale_dates_values|safe }},
-                borderColor: '#5b5ce2',
-                backgroundColor: 'rgba(91, 92, 226, 0.08)',
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#5b5ce2',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderWidth: 3,
-                tension: 0.35,
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
+    const purchaseLabels = {{ purchase_dates_labels|safe|default:"[]" }};
+    const purchaseValues = {{ purchase_dates_values|safe|default:"[]" }};
+
+    const purchaseCanvas = document.getElementById('purchaseChart');
+    const lineCanvas = document.getElementById('lineChart');
+
+    if (purchaseCanvas) {
+        const existingPurchaseChart = Chart.getChart(purchaseCanvas);
+
+        if (existingPurchaseChart) {
+            existingPurchaseChart.destroy();
+        }
+
+        const purchaseCtx = purchaseCanvas.getContext('2d');
+        const purchaseGradient = purchaseCtx.createLinearGradient(0, 0, 0, 360);
+        purchaseGradient.addColorStop(0, 'rgba(34, 197, 94, 0.30)');
+        purchaseGradient.addColorStop(1, 'rgba(34, 197, 94, 0.02)');
+
+        new Chart(purchaseCtx, {
+            type: 'line',
+            data: {
+                labels: purchaseLabels,
+                datasets: [{
+                    label: 'Purchases',
+                    data: purchaseValues,
+                    borderColor: '#22c55e',
+                    backgroundColor: purchaseGradient,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#22c55e',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: true
+                }]
             },
-            plugins: {
-                legend: {
-                    display: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
                 },
-                tooltip: {
-                    backgroundColor: '#111827',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    padding: 10,
-                    callbacks: {
-                        label: function(context) {
-                            return 'Sales: ' + context.raw;
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Purchases: ' + context.raw;
+                            }
                         }
                     }
                 },
-                title: {
-                    display: false
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: true,
-                        color: '#f0f1f6',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#9ca3af',
-                        font: {
-                            size: 11,
-                            weight: '500'
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: '#f0f1f6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            }
                         }
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#f0f1f6',
-                        drawBorder: false
                     },
-                    ticks: {
-                        color: '#9ca3af',
-                        font: {
-                            size: 11,
-                            weight: '500'
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f1f6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            }
                         }
                     }
                 }
             }
+        });
+    }
+
+    if (lineCanvas) {
+        const existingLineChart = Chart.getChart(lineCanvas);
+
+        if (existingLineChart) {
+            existingLineChart.destroy();
         }
-    });
+
+        const lineCtx = lineCanvas.getContext('2d');
+        const salesGradient = lineCtx.createLinearGradient(0, 0, 0, 360);
+        salesGradient.addColorStop(0, 'rgba(91, 92, 226, 0.30)');
+        salesGradient.addColorStop(1, 'rgba(91, 92, 226, 0.02)');
+
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: salesLabels,
+                datasets: [{
+                    label: 'Sales',
+                    data: salesValues,
+                    borderColor: '#5b5ce2',
+                    backgroundColor: salesGradient,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#5b5ce2',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 3,
+                    tension: 0.35,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Sales: ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: '#f0f1f6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f1f6',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                size: 11,
+                                weight: '500'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
-
 <style>
     .chart-card {
         background: #fbfbfd;
@@ -201,18 +251,11 @@
         width: 100%;
     }
 
-    .pie-wrapper {
-        height: 360px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
     .line-wrapper {
         height: 360px;
     }
 
-    #pieChart,
+    #purchaseChart,
     #lineChart {
         width: 100% !important;
         height: 100% !important;

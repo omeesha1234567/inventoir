@@ -7,11 +7,9 @@
         <div class="col-md-6 col-lg-5">
 
             <div class="card border-0 shadow-sm" style="border-radius: 22px; overflow: hidden;">
-
                 <div style="height: 6px; background: #dc2626;"></div>
 
                 <div class="card-body p-4 p-md-5">
-
                     <div class="mb-4 text-center">
                         <div class="d-inline-flex align-items-center justify-content-center mb-3"
                              style="width: 60px; height: 60px; border-radius: 16px; background: rgba(220, 38, 38, 0.10); color: #dc2626;">
@@ -23,7 +21,7 @@
                         </h3>
 
                         <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
-                            This action cannot be undone
+                            This will remove the whole grouped purchase entry
                         </p>
                     </div>
 
@@ -34,8 +32,8 @@
                             <div>
                                 <div class="fw-semibold" style="color: #991b1b;">Are you sure?</div>
                                 <div style="color: #7f1d1d; font-size: 0.95rem;">
-                                    You are about to delete the purchase
-                                    <span class="fw-bold">"{{ object.slug }}"</span>
+                                    You are about to delete purchase batch
+                                    <span class="fw-bold">"#{{ object.id }}"</span>
                                 </div>
                             </div>
                         </div>

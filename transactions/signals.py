@@ -1,14 +1,20 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Purchase
+from transactions.models import Sale
+from invoice.models import Invoice
 
 
-@receiver(post_save, sender=Purchase)
-def update_item_quantity(sender, instance, created, **kwargs):
-    """
-    Signal to update item quantity when a purchase is made.
-    """
+@receiver(post_save, sender=Sale)
+def create_invoice_after_sale(sender, instance, created, **kwargs):
     if created:
-        instance.item.quantity += instance.quantity
-        instance.item.save()
+        Invoice.objects.get_or_create(
+            sale=instance,
+            defaults={
+                "customer_name": str(instance.customer),
+                "contact_number": instance.customer.phone or "",
+                "total": float(instance.sub_total),
+                "grand_total": float(instance.grand_total),
+                "shipping": 0.00
+            }
+        )

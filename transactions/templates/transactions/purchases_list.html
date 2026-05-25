@@ -1,16 +1,11 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load render_table from django_tables2 %}
-{% load querystring from django_tables2 %}
 
 {% block title %}Purchases{% endblock title %}
 
 {% block content %}
 <div class="container-fluid py-4" style="background: #f5f6fa; min-height: 100vh;">
-
     <div class="container">
-
-        <!-- Header -->
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 22px; overflow: hidden;">
             <div style="height: 6px; background: #1a1c8f;"></div>
 
@@ -18,7 +13,7 @@
                 <div>
                     <h3 class="fw-bold mb-1" style="color: #1f2937;">Purchases</h3>
                     <p class="mb-0" style="color: #6b7280; font-size: 0.95rem;">
-                        Track and manage purchase orders
+                        Track and manage grouped purchase entries
                     </p>
                 </div>
 
@@ -38,23 +33,22 @@
             </div>
         </div>
 
-        <!-- Table -->
         <div class="card border-0 shadow-sm" style="border-radius: 22px;">
             <div class="card-body p-0">
-
                 <style>
                     .purchase-table th,
                     .purchase-table td {
                         text-align: center;
                         vertical-align: middle;
-                        padding: 14px;
+                        padding: 14px 12px;
+                        white-space: nowrap;
                     }
 
                     .purchase-table thead th {
                         background: #f8f9ff;
                         color: #1a1c8f;
                         font-weight: 700;
-                        font-size: 0.9rem;
+                        font-size: 0.88rem;
                         border-bottom: 1px solid #e9ecf5;
                     }
 
@@ -79,11 +73,36 @@
                         color: #047857;
                     }
 
+                    .amount-paid {
+                        color: #047857;
+                        font-weight: 700;
+                    }
+
+                    .amount-remaining {
+                        color: #dc2626;
+                        font-weight: 700;
+                    }
+
+                    .amount-clear {
+                        color: #047857;
+                        font-weight: 700;
+                    }
+
                     .action-btn {
                         border-radius: 10px;
                         font-size: 0.8rem;
                         font-weight: 600;
                         padding: 6px 10px;
+                    }
+
+                    .action-btn.view {
+                        border: 1px solid #2563eb;
+                        color: #2563eb;
+                    }
+
+                    .action-btn.view:hover {
+                        background: #2563eb;
+                        color: white;
                     }
 
                     .action-btn.edit {
@@ -123,12 +142,15 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Item</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Payment Status</th>
                                 <th>Date</th>
                                 <th>Vendor</th>
+                                <th>Items Count</th>
+                                <th>Total Amount</th>
+                                <th>Amount Paid</th>
+                                <th>Remaining Amount</th>
+                                <th>Status</th>
+                                <th>Item Details</th>
+                                <th>Payment Details</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -137,9 +159,19 @@
                             {% for purchase in purchases %}
                             <tr>
                                 <td>{{ purchase.id }}</td>
-                                <td>{{ purchase.item.name }}</td>
-                                <td>{{ purchase.quantity }}</td>
+                                <td>{{ purchase.delivery_date|date:"M d, Y" }}</td>
+                                <td>{{ purchase.vendor.name }}</td>
+                                <td>{{ purchase.items_count }}</td>
                                 <td>₹{{ purchase.total_value }}</td>
+                                <td class="amount-paid">₹{{ purchase.amount_paid }}</td>
+
+                                <td>
+                                    {% if purchase.remaining_amount > 0 %}
+                                        <span class="amount-remaining">₹{{ purchase.remaining_amount }}</span>
+                                    {% else %}
+                                        <span class="amount-clear">₹0.00</span>
+                                    {% endif %}
+                                </td>
 
                                 <td>
                                     {% if purchase.delivery_status == 'P' %}
@@ -149,22 +181,33 @@
                                     {% endif %}
                                 </td>
 
-                                <td>{{ purchase.delivery_date }}</td>
-                                <td>{{ purchase.vendor.name }}</td>
-
-                                <td class="d-flex justify-content-center gap-2">
-                                    <a href="{% url 'purchase-update' purchase.id %}" class="btn action-btn edit">
-                                        <i class="fa-solid fa-pen"></i>
+                                <td>
+                                    <a href="{% url 'purchase-detail' purchase.slug %}" class="btn action-btn view">
+                                        View Details
                                     </a>
+                                </td>
 
-                                    <a href="{% url 'purchase-delete' purchase.id %}" class="btn action-btn delete">
-                                        <i class="fa-solid fa-trash"></i>
+                                <td>
+                                    <a href="{% url 'purchase-detail' purchase.slug %}#payment-details" class="btn action-btn view">
+                                        See Payments
                                     </a>
+                                </td>
+
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'purchase-update' purchase.id %}" class="btn action-btn edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+
+                                        <a href="{% url 'purchase-delete' purchase.id %}" class="btn action-btn delete">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="8" class="text-muted py-4">
+                                <td colspan="11" class="text-muted py-4">
                                     No purchase records found
                                 </td>
                             </tr>
@@ -176,7 +219,6 @@
             </div>
         </div>
 
-        <!-- Pagination -->
         {% if is_paginated %}
         <div class="d-flex justify-content-center mt-4">
             <nav>
@@ -208,7 +250,6 @@
             </nav>
         </div>
         {% endif %}
-
     </div>
 </div>
 {% endblock %}
