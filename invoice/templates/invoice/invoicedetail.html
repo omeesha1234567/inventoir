@@ -1,4 +1,4 @@
-static/images/invoice_format.pdf{% extends 'store/base.html' %}
+{% extends 'store/base.html' %}
 {% block title %}Invoice Detail{% endblock %}
 
 {% block content %}
@@ -200,7 +200,10 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
 </style>
 
 <div class="invoice-page">
-    <div class="print-btn-wrap">
+    <div class="print-btn-wrap d-flex gap-2 justify-content-end">
+        <a href="{% url 'invoice-pdf' invoice.slug %}" class="btn btn-primary btn-sm">
+            <i class="fa fa-download me-1"></i> Download PDF
+        </a>
         <button onclick="window.print()" class="btn btn-success btn-sm">
             <i class="fa fa-print me-1"></i> Print
         </button>
@@ -210,13 +213,11 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
         <div class="invoice-title">Tax Invoice</div>
 
         <div class="company-block">
-            <div class="company-name">Nescube Technology Pvt Ltd</div>
+            <div class="company-name">{{ invoice.company_name|default:"—" }}</div>
             <div class="company-text">
-                SD 135, Jaipuriya Sunrise Plaza, Plot No-12A, Indirapuram, Ghaziabad, U.P. 201014
-                <br>GSTIN/UIN: 09AAFCN4905R1ZT
-                <br>State Name: Uttar Pradesh, Code: 09
-                <br>Contact: 0120-4286333
-                <br>Email: support@nestechindia.com
+                {{ invoice.company_address|linebreaksbr|default:"—" }}
+                <br>GSTIN/UIN: {{ invoice.company_gst_number|default:"—" }}
+                <br>Contact: {{ invoice.company_phone|default:"—" }}
             </div>
         </div>
 
@@ -224,11 +225,17 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
             <div class="info-card">
                 <h6>Consignee (Ship to)</h6>
                 <p>{{ invoice.customer_name|default:"-" }}</p>
+                {% if invoice.customer_address %}
+                <p class="mt-2">{{ invoice.customer_address|linebreaksbr }}</p>
+                {% endif %}
             </div>
 
             <div class="info-card">
                 <h6>Buyer (Bill to)</h6>
                 <p>{{ invoice.customer_name|default:"-" }}</p>
+                {% if invoice.customer_address %}
+                <p class="mt-2">{{ invoice.customer_address|linebreaksbr }}</p>
+                {% endif %}
             </div>
 
             <div class="info-card">
@@ -250,6 +257,10 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
                         <td class="label">Phone</td>
                         <td>{{ invoice.contact_number|default:"-" }}</td>
                     </tr>
+                    <tr>
+                        <td class="label">Customer GST</td>
+                        <td>{{ invoice.customer_gst_number|default:"NA" }}</td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -259,9 +270,10 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
                 <tr>
                     <th style="width: 6%;">Sl</th>
                     <th>Description of Goods</th>
-                    <th style="width: 14%;">Quantity</th>
-                    <th style="width: 16%;">Rate</th>
-                    <th style="width: 18%;">Amount</th>
+                    <th style="width: 12%;">Quantity</th>
+                    <th style="width: 14%;">Rate</th>
+                    <th style="width: 12%;">GST</th>
+                    <th style="width: 16%;">Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -271,15 +283,16 @@ static/images/invoice_format.pdf{% extends 'store/base.html' %}
                     <td>{{ line.item.name }}</td>
                     <td class="text-center">{{ line.quantity }}</td>
                     <td class="text-end">₹{{ line.price }}</td>
+                    <td class="text-center">{{ line.gst_percentage|floatformat:2 }}%</td>
                     <td class="text-end">₹{{ line.line_total }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center">No invoice items found.</td>
+                    <td colspan="6" class="text-center">No invoice items found.</td>
                 </tr>
                 {% endfor %}
                 <tr class="summary-row">
-                    <td colspan="2" class="text-end">Total</td>
+                    <td colspan="3" class="text-end">Total</td>
                     <td class="text-center">{{ invoice.items_count }}</td>
                     <td></td>
                     <td class="text-end">₹{{ invoice.total }}</td>

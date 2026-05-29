@@ -376,6 +376,18 @@
                             </div>
 
                             <div class="mb-3">
+                                <label for="customer_gst_number" class="form-label">Customer GST Number</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="customer_gst_number"
+                                    placeholder="GST number or NA"
+                                    aria-label="Customer GST Number"
+                                >
+                                <small class="text-muted">Optional. Existing customers auto-fill this field.</small>
+                            </div>
+
+                            <div class="mb-3">
                                 <label for="grand_total" class="form-label">Grand Total</label>
                                 <input
                                     name="grand_total"
@@ -582,6 +594,7 @@
         if (!customerName) {
             $('#customer_phone').val('');
             $('#customer_address').val('');
+            $('#customer_gst_number').val('');
             return;
         }
 
@@ -596,14 +609,17 @@
                 if (response.found) {
                     $('#customer_phone').val(response.phone || '');
                     $('#customer_address').val(response.address || '');
+                    $('#customer_gst_number').val(response.gst_number || '');
                 } else {
                     $('#customer_phone').val('');
                     $('#customer_address').val('');
+                    $('#customer_gst_number').val('');
                 }
             },
             error: function () {
                 $('#customer_phone').val('');
                 $('#customer_address').val('');
+                $('#customer_gst_number').val('');
             }
         });
     }
@@ -914,6 +930,7 @@
                 customer_name: customerName,
                 phone: phone,
                 address: address,
+                customer_gst_number: $('#customer_gst_number').val().trim(),
                 sub_total: grandTotal,
                 tax_percentage: 0,
                 tax_amount: 0,
@@ -946,9 +963,14 @@
                         title: 'Success',
                         text: 'Sale has been completed successfully!'
                     }).then(function () {
-                        if (response.redirect) {
-                            window.location.href = response.redirect;
+                        if (response.download_url) {
+                            window.location.href = response.download_url;
                         }
+                        setTimeout(function () {
+                            if (response.redirect) {
+                                window.location.href = response.redirect;
+                            }
+                        }, 1200);
                     });
                 },
                 error: function (xhr) {

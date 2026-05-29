@@ -1,0 +1,32 @@
+{% extends "store/base.html" %}
+{% block title %}Archived Records{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>Archived Records</h2>
+    <div class="mb-3">
+        {% for s in sections %}
+            <a href="{% url 'archived-records' s %}" class="btn btn-sm {% if s == section %}btn-primary{% else %}btn-outline-secondary{% endif %} me-1">{{ s|title }}</a>
+        {% endfor %}
+    </div>
+    <table class="table table-striped">
+        <thead><tr><th>ID</th><th>Record</th><th>Archived At</th><th></th></tr></thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                <td>{{ record.pk }}</td>
+                <td>{{ record }}</td>
+                <td>{{ record.archived_at|default:"—" }}</td>
+                <td>
+                    <form method="post" action="{% url 'archived-restore' section record.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-success">Restore</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">No archived {{ section }}.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

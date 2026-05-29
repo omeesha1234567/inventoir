@@ -1,18 +1,5 @@
-{% extends 'store/base.html' %}
-{% load static %}
-
-{% block content %}
-<div class="container px-5">
-    <h1 class="my-4">Confirm Delete</h1>
-    <p>Are you sure you want to delete "{{ object.name }}"?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash-alt"></i> Confirm
-        </button>
-        <a href="{% url 'vendor-list' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Cancel
-        </a>
-    </form>
-</div>
-{% endblock %}
+{% extends "store/archive_confirm.html" %}
+{% block archive_title %}Archive Vendor{% endblock %}
+{% block archive_heading %}Archive Vendor{% endblock %}
+{% block record_type %}Vendor{% endblock %}
+{% block cancel_url %}{% url 'vendor-list' %}{% endblock %}

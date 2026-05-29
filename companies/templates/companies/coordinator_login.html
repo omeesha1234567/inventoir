@@ -1,0 +1,24 @@
+{% extends "companies/auth_layout.html" %}
+{% block auth_title %}Coordinator Login — Inventoir{% endblock %}
+{% block form_subtitle %}Sign in as Company Coordinator{% endblock %}
+{% block promo_title %}Daily operations{% endblock %}
+{% block promo_text %}Create sales, purchases, and manage inventory for your company.{% endblock %}
+{% block auth_form %}
+{% if form.errors %}
+<div class="alert alert-danger small">Invalid username or password.</div>
+{% endif %}
+<form method="post">{% csrf_token %}
+    <div class="mb-3">
+        <label class="form-label fw-semibold small">Username</label>
+        <input type="text" name="username" class="form-control form-control-lg" required autofocus>
+    </div>
+    <div class="mb-4">
+        <label class="form-label fw-semibold small">Password</label>
+        <input type="password" name="password" class="form-control form-control-lg" required>
+    </div>
+    <button type="submit" class="btn btn-lg w-100 text-white fw-semibold" style="background: #1a1c8f;">Login as Coordinator</button>
+</form>
+{% endblock %}
+{% block auth_footer %}
+Company owner? <a href="{% url 'owner-login' %}">Owner login</a>
+{% endblock %}

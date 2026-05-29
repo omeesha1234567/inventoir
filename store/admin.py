@@ -27,10 +27,10 @@ class ItemAdmin(admin.ModelAdmin):
     Admin configuration for the Item model.
     """
     list_display = (
-        'name', 'category', 'quantity', 'price', 'purchase_date', 'vendor'
+        'name', 'company', 'category', 'quantity', 'price', 'purchase_date', 'vendor'
     )
     search_fields = ('name', 'category__name', 'vendor__name')
-    list_filter = ('category', 'vendor')
+    list_filter = ('company', 'category', 'vendor', 'is_archived')
     ordering = ('name',)
 
 
@@ -39,12 +39,12 @@ class DeliveryAdmin(admin.ModelAdmin):
     Admin configuration for the Delivery model.
     """
     list_display = (
-        'item', 'customer_name', 'phone_number',
-        'location', 'date', 'is_delivered'
+        'item', 'company', 'customer_name', 'phone_number',
+        'location', 'date', 'is_delivered',
     )
     search_fields = ('item__name', 'customer_name')
-    list_filter = ('is_delivered', 'date')
-    ordering = ('-date',)
+    list_filter = ('company', 'is_delivered', 'date')
+    ordering = ('-date', '-id')
 
 
 admin.site.register(Category, CategoryAdmin)

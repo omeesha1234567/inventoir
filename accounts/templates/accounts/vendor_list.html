@@ -128,10 +128,12 @@
                                    style="background-color: #F0F2FF; color: #4A4DE6; border-radius: 8px;">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{% url 'vendor-delete' vendor.pk %}" class="btn btn-sm" 
-                                   style="background-color: #FFF1F1; color: #E53E3E; border-radius: 8px;">
-                                    <i class="fas fa-trash-alt"></i>
+                                {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
+                                <a href="{% url 'vendor-delete' vendor.pk %}" class="btn btn-sm" title="Archive"
+                                   style="background-color: #fff7ed; color: #d97706; border-radius: 8px;">
+                                    <i class="fas fa-box-archive"></i>
                                 </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

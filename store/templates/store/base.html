@@ -30,7 +30,7 @@
                         <i class="fa fa-bars text-white"></i>
                     </button>
 
-                    <a class="navbar-brand" style="font-size: 20px;" href="{% url 'dashboard' %}">
+                    <a class="navbar-brand text-white" style="font-size: 20px;" href="{% url 'dashboard' %}">
                         INVENTOIR
                     </a>
                 </div>
@@ -42,6 +42,7 @@
             </div>
         </nav>
 
+        {% include "store/includes/messages.html" %}
         {% block content %}
         {% endblock content %}
     </section>

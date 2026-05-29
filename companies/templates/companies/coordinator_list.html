@@ -1,0 +1,33 @@
+{% extends "store/base.html" %}
+{% block title %}Coordinators{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Coordinators</h2>
+        <a href="{% url 'coordinator-create' %}" class="btn btn-primary">Create Coordinator</a>
+    </div>
+    <table class="table table-striped">
+        <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for profile in coordinators %}
+            <tr>
+                <td>{{ profile.user.username }}</td>
+                <td>{{ profile.first_name }}</td>
+                <td>{{ profile.email }}</td>
+                <td>{% if profile.user.is_active %}Active{% else %}Inactive{% endif %}</td>
+                <td>
+                    {% if profile.user.is_active %}
+                    <form method="post" action="{% url 'coordinator-deactivate' profile.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5">No coordinators yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+<style>
+    .dashboard-page { background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%); min-height: 100vh; }
+    .dashboard-title { color: #010102; font-weight: 700; font-size: 2rem; }
+    .dashboard-link { text-decoration: none; }
+    .dashboard-card { border: none; border-radius: 18px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); transition: 0.25s ease; }
+    .dashboard-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(26, 28, 143, 0.08); }
+    .dashboard-label { color: #060607; font-size: 0.9rem; font-weight: 600; }
+    .dashboard-value { color: #111827; font-size: 1.75rem; font-weight: 700; }
+    .dashboard-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(26, 28, 143, 0.1); color: #1a1c8f; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .dashboard-section { border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); padding: 18px; }
+    .admin-banner { border-radius: 16px; background: linear-gradient(135deg, #1a1c8f 0%, #3b3fd9 100%); color: #fff; }
+    .low-stock-row { border-left: 4px solid #dc2626; }
+</style>
+
+<div class="dashboard-page p-3 p-md-4">
+    {% if company and is_admin_dashboard %}
+    <div class="admin-banner p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="small opacity-75">Your Company</div>
+            <h4 class="fw-bold mb-1">{{ company.name }}</h4>
+            <span class="badge bg-light text-dark">Code: {{ company.company_code }}</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'company-settings' %}" class="btn btn-light btn-sm fw-semibold"><i class="fa fa-cog me-1"></i> Settings</a>
+            <a href="{% url 'coordinator-list' %}" class="btn btn-outline-light btn-sm fw-semibold"><i class="fa fa-users me-1"></i> Coordinators</a>
+            <a href="{% url 'archived-records' 'customers' %}" class="btn btn-outline-light btn-sm fw-semibold"><i class="fa fa-box-archive me-1"></i> Archived</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mb-4">
+        <h2 class="dashboard-title mb-1">
+            {% if is_coordinator_dashboard %}Coordinator Dashboard{% else %}Admin Dashboard{% endif %}
+        </h2>
+        <p class="text-muted mb-0">{% if is_coordinator_dashboard %}Today's operations and inventory snapshot{% else %}Company overview and performance{% endif %}</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        {% if is_coordinator_dashboard %}
+        <div class="col-xl-3 col-sm-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-body p-4 d-flex justify-content-between">
+                    <div>
+                        <span class="dashboard-label">Today's Sales</span>
+                        <div class="dashboard-value">₹{{ today_sales|floatformat:2 }}</div>
+                    </div>
+                    <div class="dashboard-icon"><i class="fa fa-calendar-day"></i></div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-xl-3 col-sm-6">
+            <a href="{% url 'saleslist' %}" class="dashboard-link">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body p-4 d-flex justify-content-between">
+                        <div>
+                            <span class="dashboard-label">Total Revenue</span>
+                            <div class="dashboard-value">₹{{ revenue|floatformat:2 }}</div>
+                        </div>
+                        <div class="dashboard-icon"><i class="fa fa-indian-rupee-sign"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-body p-4 d-flex justify-content-between">
+                    <div>
+                        <span class="dashboard-label">Total Purchases</span>
+                        <div class="dashboard-value">{{ total_purchases_count }}</div>
+                    </div>
+                    <div class="dashboard-icon"><i class="fa fa-shopping-cart"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-body p-4 d-flex justify-content-between">
+                    <div>
+                        <span class="dashboard-label">Inventory Value</span>
+                        <div class="dashboard-value">₹{{ inventory_value|floatformat:2 }}</div>
+                    </div>
+                    <div class="dashboard-icon"><i class="fa fa-warehouse"></i></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-xl-3 col-sm-6">
+            <a href="{% url 'productslist' %}" class="dashboard-link">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body p-4 d-flex justify-content-between">
+                        <div>
+                            <span class="dashboard-label">Products</span>
+                            <div class="dashboard-value">{{ product_count }}</div>
+                        </div>
+                        <div class="dashboard-icon"><i class="fa fa-box"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {% if is_admin_dashboard %}
+        <div class="col-xl-3 col-sm-6">
+            <a href="{% url 'customer_list' %}" class="dashboard-link">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body p-4 d-flex justify-content-between">
+                        <div>
+                            <span class="dashboard-label">Customers</span>
+                            <div class="dashboard-value">{{ customer_count }}</div>
+                        </div>
+                        <div class="dashboard-icon"><i class="fa fa-user-group"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <a href="{% url 'vendor-list' %}" class="dashboard-link">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body p-4 d-flex justify-content-between">
+                        <div>
+                            <span class="dashboard-label">Vendors</span>
+                            <div class="dashboard-value">{{ vendor_count }}</div>
+                        </div>
+                        <div class="dashboard-icon"><i class="fa fa-truck"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <a href="{% url 'coordinator-list' %}" class="dashboard-link">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body p-4 d-flex justify-content-between">
+                        <div>
+                            <span class="dashboard-label">Coordinators</span>
+                            <div class="dashboard-value">{{ coordinator_count }}</div>
+                        </div>
+                        <div class="dashboard-icon"><i class="fa fa-users"></i></div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="dashboard-section h-100">
+                <h5 class="fw-bold mb-3" style="color: #1a1c8f;"><i class="fa fa-shopping-bag me-2"></i>Recent Sales</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>ID</th><th>Customer</th><th class="text-end">Amount</th></tr></thead>
+                        <tbody>
+                        {% for sale in recent_sales %}
+                        <tr>
+                            <td><a href="{% url 'sale-detail' sale.pk %}">#{{ sale.id }}</a></td>
+                            <td>{{ sale.customer }}</td>
+                            <td class="text-end">₹{{ sale.grand_total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-muted text-center py-3">No sales yet</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="dashboard-section h-100">
+                <h5 class="fw-bold mb-3" style="color: #1a1c8f;"><i class="fa fa-cart-plus me-2"></i>Recent Purchases</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>ID</th><th>Vendor</th><th class="text-end">Status</th></tr></thead>
+                        <tbody>
+                        {% for p in recent_purchases %}
+                        <tr>
+                            <td><a href="{% url 'purchase-detail' p.slug %}">#{{ p.id }}</a></td>
+                            <td>{{ p.vendor.name }}</td>
+                            <td class="text-end">{{ p.get_delivery_status_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-muted text-center py-3">No purchases yet</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="dashboard-section">
+                <h5 class="fw-bold mb-3 text-danger"><i class="fa fa-triangle-exclamation me-2"></i>Low Stock Alerts</h5>
+                <ul class="list-group list-group-flush">
+                {% for item in low_stock_items %}
+                    <li class="list-group-item low-stock-row d-flex justify-content-between align-items-center px-0">
+                        <a href="{% url 'product-detail' item.slug %}">{{ item.name }}</a>
+                        <span class="badge bg-danger">{{ item.quantity }} left</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted border-0 px-0">All products are above low-stock threshold.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="dashboard-section">
+                {% include 'store/charts.html' %}
+            </div>
+        </div>
+    </div>
+</div>

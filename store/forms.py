@@ -89,25 +89,43 @@ class ItemForm(forms.ModelForm):
         vendor_name = " ".join(self.cleaned_data.get('vendor_name', '').split())
         return vendor_name
 
+    def __init__(self, *args, company=None, user=None, **kwargs):
+        self.company = company
+        self.user = user
+        super().__init__(*args, **kwargs)
+
     def save(self, commit=True):
         item = super().save(commit=False)
 
         category_name = self.cleaned_data.get('category_name')
         vendor_name = self.cleaned_data.get('vendor_name')
+        company = self.company or item.company
 
-        category_obj = Category.objects.filter(name__iexact=category_name).first()
+        category_qs = Category.objects.filter(name__iexact=category_name)
+        if company:
+            category_qs = category_qs.filter(company=company)
+        category_obj = category_qs.first()
         if category_obj is None:
-            category_obj = Category.objects.create(name=category_name)
+            category_obj = Category.objects.create(
+                name=category_name,
+                company=company,
+            )
 
         item.category = category_obj
 
         if vendor_name:
-            vendor_obj = Vendor.objects.filter(name__iexact=vendor_name).first()
+            vendor_qs = Vendor.objects.filter(name__iexact=vendor_name)
+            if company:
+                vendor_qs = vendor_qs.filter(company=company)
+            vendor_obj = vendor_qs.first()
             if vendor_obj is None:
-                vendor_obj = Vendor.objects.create(name=vendor_name)
+                vendor_obj = Vendor.objects.create(name=vendor_name, company=company)
             item.vendor = vendor_obj
         else:
             item.vendor = None
+
+        if company and not item.company_id:
+            item.company = company
 
         if commit:
             item.save()

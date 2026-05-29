@@ -1,0 +1,9 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+{% include "store/includes/messages.html" %}
+<div class="container-fluid py-2">
+    {% include "store/includes/dashboard_body.html" %}
+</div>
+{% endblock %}

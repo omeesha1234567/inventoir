@@ -3,22 +3,38 @@ from django.urls import reverse
 from django.forms import model_to_dict
 from django_extensions.db.fields import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
+
 from accounts.models import Vendor
+from companies.base import (
+    ActiveCompanyManager,
+    ArchivableModel,
+    AuditedModel,
+    CompanyOwnedModel,
+)
 
 
-class Category(models.Model):
+class Category(CompanyOwnedModel, ArchivableModel, AuditedModel):
     name = models.CharField(max_length=50)
-    slug = AutoSlugField(unique=True, populate_from='name')
+    slug = AutoSlugField(populate_from='name')
+
+    objects = models.Manager()
+    active = ActiveCompanyManager()
 
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name_plural = 'Categories'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['company', 'slug'],
+                name='unique_category_slug_per_company',
+            ),
+        ]
 
 
-class Item(models.Model):
-    slug = AutoSlugField(unique=True, populate_from='name')
+class Item(CompanyOwnedModel, ArchivableModel, AuditedModel):
+    slug = AutoSlugField(populate_from='name')
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=256)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -26,7 +42,12 @@ class Item(models.Model):
     price = models.FloatField(default=0)
     gst_percentage = models.FloatField(default=0)
     purchase_date = models.DateTimeField(null=True, blank=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
+    vendor = models.ForeignKey(
+        Vendor, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    objects = models.Manager()
+    active = ActiveCompanyManager()
 
     def __str__(self):
         return self.name
@@ -56,9 +77,15 @@ class Item(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Items'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['company', 'slug'],
+                name='unique_item_slug_per_company',
+            ),
+        ]
 
 
-class Delivery(models.Model):
+class Delivery(CompanyOwnedModel):
     item = models.ForeignKey(
         Item, blank=True, null=True, on_delete=models.SET_NULL
     )
@@ -72,6 +99,6 @@ class Delivery(models.Model):
 
     def __str__(self):
         return (
-            f"Delivery of {self.item} to {self.customer_name} "
-            f"at {self.location} on {self.date}"
+            f'Delivery of {self.item} to {self.customer_name} '
+            f'at {self.location} on {self.date}'
         )

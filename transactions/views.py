@@ -5,12 +5,27 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, time
 
 from django.db import transaction
+from django.db.models import Sum
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.views import View
+from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from accounts.mixins import CompanyAccessMixin, CompanyAdminRequiredMixin, CoordinatorOrAdminMixin
+from accounts.tenant import company_for_request, scoped_queryset, tenant_guard_json
+from accounts.utils import (
+    assign_company,
+    filter_by_company,
+    get_user_company,
+    set_audit_user,
+)
+from companies.archive_views import ArchivableDeleteView
+from companies.base import archive_instance
 
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import FormMixin, UpdateView, DeleteView
@@ -19,7 +34,19 @@ from openpyxl import Workbook
 from invoice.models import Invoice, InvoiceItem
 from store.models import Item, Category
 from accounts.models import Customer, Vendor
-from .models import Sale, Purchase, SaleDetail, PurchaseItem, PurchasePayment
+from .models import (
+    PAYMENT_MODE_CHOICES,
+    Sale,
+    Purchase,
+    SaleDetail,
+    PurchaseItem,
+    PurchasePayment,
+    SalePayment,
+)
+from invoice.services import (
+    create_invoice_items_from_sale,
+    sync_invoice_from_sale,
+)
 from .forms import PurchaseForm
 
 logger = logging.getLogger(__name__)
@@ -31,6 +58,14 @@ def is_ajax(request):
 
 def normalize_text(value):
     return " ".join(str(value or "").split()).strip()
+
+
+def resolve_request_company(request):
+    company = get_user_company(request.user)
+    if company is None and request.user.is_superuser:
+        from accounts.utils import get_default_company
+        company = get_default_company()
+    return company
 
 
 
@@ -45,6 +80,7 @@ def split_customer_name(customer_name):
     return first_name, last_name
 
 
+@login_required
 def get_customer_details(request):
     if request.method != "POST":
         return JsonResponse(
@@ -52,23 +88,40 @@ def get_customer_details(request):
             status=405
         )
 
+    guard = tenant_guard_json(request)
+    if guard is not None:
+        return guard
+
     try:
         customer_name = request.POST.get("customer_name", "").strip()
         first_name, last_name = split_customer_name(customer_name)
 
         if not first_name:
             return JsonResponse(
-                {"status": "success", "found": False, "phone": "", "address": ""}
+                {
+                    "status": "success",
+                    "found": False,
+                    "phone": "",
+                    "address": "",
+                    "gst_number": "",
+                }
             )
 
-        customer = Customer.objects.filter(
+        customer_qs = scoped_queryset(Customer, request.user).filter(
             first_name__iexact=first_name,
-            last_name__iexact=last_name
-        ).first()
+            last_name__iexact=last_name,
+        )
+        customer = customer_qs.first()
 
         if customer is None:
             return JsonResponse(
-                {"status": "success", "found": False, "phone": "", "address": ""}
+                {
+                    "status": "success",
+                    "found": False,
+                    "phone": "",
+                    "address": "",
+                    "gst_number": "",
+                }
             )
 
         return JsonResponse(
@@ -76,7 +129,8 @@ def get_customer_details(request):
                 "status": "success",
                 "found": True,
                 "phone": customer.phone or "",
-                "address": customer.address or ""
+                "address": customer.address or "",
+                "gst_number": customer.gst_number or "",
             }
         )
 
@@ -88,12 +142,17 @@ def get_customer_details(request):
         )
 
 
+@login_required
 def get_vendor_details(request):
     if request.method != "POST":
         return JsonResponse(
             {"status": "error", "message": "Invalid request method"},
             status=405
         )
+
+    guard = tenant_guard_json(request)
+    if guard is not None:
+        return guard
 
     try:
         vendor_name = normalize_text(request.POST.get("vendor_name", ""))
@@ -110,7 +169,9 @@ def get_vendor_details(request):
                 }
             )
 
-        vendor = Vendor.objects.filter(name__iexact=vendor_name).first()
+        vendor = scoped_queryset(Vendor, request.user).filter(
+            name__iexact=vendor_name,
+        ).first()
 
         if vendor is None:
             return JsonResponse(
@@ -143,6 +204,7 @@ def get_vendor_details(request):
         )
 
 
+@login_required
 def export_sales_to_excel(request):
     workbook = Workbook()
     worksheet = workbook.active
@@ -155,7 +217,7 @@ def export_sales_to_excel(request):
     ]
     worksheet.append(columns)
 
-    sales = Sale.objects.all()
+    sales = filter_by_company(Sale.objects.all(), request.user)
 
     for sale in sales:
         if sale.date_added.tzinfo is not None:
@@ -184,6 +246,7 @@ def export_sales_to_excel(request):
     return response
 
 
+@login_required
 def export_purchases_to_excel(request):
     workbook = Workbook()
     worksheet = workbook.active
@@ -196,7 +259,7 @@ def export_purchases_to_excel(request):
     ]
     worksheet.append(columns)
 
-    purchases = Purchase.objects.all()
+    purchases = filter_by_company(Purchase.objects.all(), request.user)
 
     for purchase in purchases:
         order_date = purchase.order_date
@@ -225,32 +288,50 @@ def export_purchases_to_excel(request):
     return response
 
 
-class SaleListView(LoginRequiredMixin, ListView):
+class SaleListView(CompanyAccessMixin, ListView):
     model = Sale
     template_name = "transactions/sales_list.html"
     context_object_name = "sales"
     paginate_by = 10
 
     def get_queryset(self):
-        return Sale.objects.select_related("customer").order_by("-date_added", "-id")
+        return (
+            super()
+            .get_queryset()
+            .select_related('customer')
+            .order_by('-date_added', '-id')
+        )
 
 
-class SaleDetailView(LoginRequiredMixin, DetailView):
+class SaleDetailView(CompanyAccessMixin, DetailView):
     model = Sale
     template_name = "transactions/saledetail.html"
     context_object_name = "sale"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        self.object.sync_payment_state(save=True)
         context["sale_items"] = self.object.saledetail_set.select_related("item").all()
+        context["payment_records"] = self.object.payments.filter(
+            is_archived=False,
+        ).order_by('-paid_on', '-id')
+        context["payment_mode_choices"] = PAYMENT_MODE_CHOICES
+        invoice = getattr(self.object, 'invoice', None)
+        context["invoice"] = invoice
         return context
 
 
+@login_required
 def SaleCreateView(request):
+    company = resolve_request_company(request)
+    if company is None and not request.user.is_superuser:
+        return redirect('owner-login')
     context = {
-        "active_icon": "sales",
-        "customers": Customer.objects.all().order_by("first_name", "last_name"),
-        "items": Item.objects.all().order_by("name"),
+        'active_icon': 'sales',
+        'customers': scoped_queryset(Customer, request.user).order_by(
+            'first_name', 'last_name',
+        ),
+        'items': scoped_queryset(Item, request.user).order_by('name'),
     }
 
     if request.method == "POST" and is_ajax(request=request):
@@ -265,15 +346,20 @@ def SaleCreateView(request):
             customer_name = normalize_text(data.get("customer_name", ""))
             phone = normalize_text(data.get("phone", ""))
             address = str(data.get("address", "")).strip()
+            customer_gst = normalize_text(data.get("customer_gst_number", ""))
 
             if not customer_name:
                 raise ValueError("Customer name is required")
 
             first_name, last_name = split_customer_name(customer_name)
 
-            customer_instance = Customer.objects.filter(
+            company = company_for_request(request)
+            if company is None and not request.user.is_superuser:
+                raise ValueError("Company context is required to create a sale")
+
+            customer_instance = scoped_queryset(Customer, request.user).filter(
                 first_name__iexact=first_name,
-                last_name__iexact=last_name
+                last_name__iexact=last_name,
             ).first()
 
             if customer_instance is None:
@@ -281,44 +367,68 @@ def SaleCreateView(request):
                     first_name=first_name,
                     last_name=last_name,
                     phone=phone,
-                    address=address
+                    address=address,
+                    gst_number=customer_gst or None,
+                    company=company,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
             else:
                 customer_instance.phone = phone
                 customer_instance.address = address
+                if customer_gst:
+                    customer_instance.gst_number = customer_gst
                 customer_instance.save()
+
+            if not customer_gst and customer_instance.gst_number:
+                customer_gst = customer_instance.gst_number.strip()
 
             items = data.get("items")
             if not isinstance(items, list) or len(items) == 0:
                 raise ValueError("At least one item is required")
 
-            amount_paid = float(data.get("amount_paid", 0))
-            grand_total = 0
+            amount_paid_raw = data.get("amount_paid", 0)
+            try:
+                initial_amount_paid = Decimal(str(amount_paid_raw or 0))
+            except (InvalidOperation, TypeError, ValueError):
+                raise ValueError("Invalid amount paid")
+            if initial_amount_paid < 0:
+                raise ValueError("Amount paid cannot be negative")
+
+            grand_total = Decimal("0.00")
 
             with transaction.atomic():
                 new_sale = Sale.objects.create(
                     customer=customer_instance,
+                    company=company,
+                    customer_gst_number=customer_gst or 'NA',
                     sub_total=0,
                     grand_total=0,
                     tax_amount=0,
                     tax_percentage=0,
-                    amount_paid=amount_paid,
+                    amount_paid=0,
                     amount_change=0,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
 
                 for item in items:
                     if "id" not in item or "quantity" not in item:
                         raise ValueError("Item is missing required fields")
 
-                    item_instance = Item.objects.select_for_update().get(
-                        id=int(item["id"])
-                    )
+                    item_qs = scoped_queryset(
+                        Item, request.user,
+                    ).select_for_update()
+                    item_instance = item_qs.get(id=int(item['id']))
 
                     quantity = int(item.get("quantity", 0))
-                    margin = float(item.get("margin", 0))
-                    gst_percentage = float(
-                        item.get("gst_percentage", item_instance.gst_percentage)
+                    margin = Decimal(str(item.get("margin", 0)))
+
+                    gst_percentage = Decimal(
+                        str(item.get("gst_percentage", item_instance.gst_percentage))
                     )
+
+                    original_price = Decimal(str(item_instance.price))
 
                     if quantity <= 0:
                         raise ValueError(
@@ -336,53 +446,93 @@ def SaleCreateView(request):
                     if item_instance.quantity < quantity:
                         raise ValueError(f"Not enough stock for item: {item_instance.name}")
 
-                    original_price = float(item_instance.price)
-                    total_item = (
-                        (original_price + margin)
-                        + ((original_price + margin) * gst_percentage / 100)
-                    ) * quantity
+                    quantity_decimal = Decimal(str(quantity))
 
-                    total_item = round(total_item, 2)
+                    unit_base = original_price + margin
+
+                    gst_amount = unit_base * (
+                        gst_percentage / Decimal("100")
+                    )
+
+                    unit_total = unit_base + gst_amount
+
+                    total_item = unit_total * quantity_decimal
+
+                    total_item = total_item.quantize(
+                        Decimal("0.01")
+                    )
+
                     grand_total += total_item
 
                     SaleDetail.objects.create(
                         sale=new_sale,
                         item=item_instance,
-                        price=round(original_price, 2),
+                        company=company,
+                        price=original_price,
                         quantity=quantity,
-                        total_detail=total_item
+                        total_detail=total_item,
+                        gst_percentage=float(gst_percentage),
                     )
 
                     item_instance.quantity -= quantity
                     item_instance.save()
 
-                new_sale.sub_total = round(grand_total, 2)
-                new_sale.grand_total = round(grand_total, 2)
-                new_sale.amount_change = round(amount_paid - grand_total, 2)
+                new_sale.sub_total = grand_total.quantize(
+                    Decimal("0.01")
+                )
+                new_sale.grand_total = grand_total.quantize(
+                    Decimal("0.01")
+                )
                 new_sale.save()
+
+                if initial_amount_paid > 0:
+                    if initial_amount_paid > new_sale.grand_total:
+                        raise ValueError(
+                            "Amount paid cannot exceed grand total"
+                        )
+                    SalePayment.objects.create(
+                        sale=new_sale,
+                        company=company,
+                        amount=initial_amount_paid,
+                        payment_mode=data.get('payment_mode', 'CASH'),
+                        note='Initial payment',
+                        created_by=request.user,
+                        updated_by=request.user,
+                    )
+
+                print(type(new_sale.grand_total))
+                print(new_sale.grand_total)
+
+                print(type(initial_amount_paid))
+                print(initial_amount_paid)
+
+                new_sale.sync_payment_state(save=True)
 
                 invoice_obj, created = Invoice.objects.get_or_create(
                     sale=new_sale,
-                    defaults={"shipping": 0}
+                    defaults={
+                        'shipping': 0,
+                        'company': company,
+                        'created_by': request.user,
+                        'updated_by': request.user,
+                    },
                 )
 
-                if not created:
-                    invoice_obj.invoice_items.all().delete()
+                create_invoice_items_from_sale(invoice_obj, new_sale, company)
+                sync_invoice_from_sale(invoice_obj, save=True)
+                invoice_obj.refresh_from_db()
 
-                for detail in new_sale.saledetail_set.all():
-                    InvoiceItem.objects.create(
-                        invoice=invoice_obj,
-                        item=detail.item,
-                        price=float(detail.price),
-                        quantity=float(detail.quantity),
-                        line_total=float(detail.total_detail)
-                    )
-
+            download_url = reverse(
+                'invoice-pdf',
+                kwargs={'slug': invoice_obj.slug},
+            )
             return JsonResponse(
                 {
                     "status": "success",
                     "message": "Sale created successfully!",
-                    "redirect": reverse("saleslist")
+                    "redirect": reverse("saleslist"),
+                    "download_url": download_url,
+                    "invoice_id": invoice_obj.id,
                 }
             )
 
@@ -416,18 +566,17 @@ def SaleCreateView(request):
     return render(request, "transactions/sale_create.html", context=context)
 
 
-class SaleDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class SaleDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
     model = Sale
-    template_name = "transactions/saledelete.html"
+    template_name = 'transactions/saledelete.html'
+    success_url = reverse_lazy('saleslist')
 
-    def get_success_url(self):
-        return reverse("saleslist")
-
-    def test_func(self):
-        return self.request.user.is_superuser
+    @property
+    def archive_success_message(self):
+        return 'Sale archived successfully.'
 
 
-class PurchaseListView(LoginRequiredMixin, ListView):
+class PurchaseListView(CompanyAccessMixin, ListView):
     model = Purchase
     template_name = "transactions/purchases_list.html"
     context_object_name = "purchases"
@@ -435,7 +584,7 @@ class PurchaseListView(LoginRequiredMixin, ListView):
     ordering = ['-delivery_date', '-order_date', '-id']
 
 
-class PurchaseDetailView(LoginRequiredMixin, DetailView):
+class PurchaseDetailView(CompanyAccessMixin, DetailView):
     model = Purchase
     template_name = "transactions/purchasedetail.html"
     context_object_name = "purchase"
@@ -444,16 +593,22 @@ class PurchaseDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         self.object.sync_payment_state(save=True)
         context["purchase_items"] = self.object.purchase_items.select_related("item").all()
-        context["payment_records"] = self.object.payments.all()
+        context["payment_records"] = self.object.payments.filter(
+            is_archived=False,
+        ).order_by('-paid_on', '-id')
         return context
 
 
+@login_required
 def PurchaseCreateView(request):
+    company = resolve_request_company(request)
+    if company is None and not request.user.is_superuser:
+        return redirect('owner-login')
     context = {
-        "active_icon": "purchases",
-        "items": Item.objects.all().order_by("name"),
-        "vendors": Vendor.objects.all().order_by("name"),
-        "categories": Category.objects.all().order_by("name"),
+        'active_icon': 'purchases',
+        'items': scoped_queryset(Item, request.user).order_by('name'),
+        'vendors': scoped_queryset(Vendor, request.user).order_by('name'),
+        'categories': scoped_queryset(Category, request.user).order_by('name'),
         "payment_mode_choices": Purchase._meta.get_field("payment_mode").choices,
     }
 
@@ -503,9 +658,13 @@ def PurchaseCreateView(request):
                 delivery_date = parse_date(delivery_date_raw)
                 if delivery_date is None:
                     raise ValueError("Invalid purchase date")
-                purchase_datetime = datetime.combine(delivery_date, time.min)
+                purchase_datetime = timezone.make_aware(
+                    datetime.combine(delivery_date, time.min),
+                )
 
-            vendor_obj = Vendor.objects.filter(name__iexact=vendor_name).first()
+            vendor_obj = scoped_queryset(Vendor, request.user).filter(
+                name__iexact=vendor_name,
+            ).first()
 
             vendor_phone_number = None
             if vendor_phone_number_raw:
@@ -520,7 +679,10 @@ def PurchaseCreateView(request):
                     phone_number=vendor_phone_number,
                     email=vendor_email or None,
                     gst_number=vendor_gst_number or None,
-                    address=vendor_address or None
+                    address=vendor_address or None,
+                    company=company,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
             else:
                 vendor_obj.phone_number = vendor_phone_number
@@ -569,11 +731,28 @@ def PurchaseCreateView(request):
 
                 category_obj = None
                 if category_name:
-                    category_obj = Category.objects.filter(name__iexact=category_name).first()
-                    if category_obj is None:
-                        category_obj = Category.objects.create(name=category_name)
+                    category_obj = None
+                    if company and category_name:
+                        category_obj = Category.objects.filter(
+                            company=company,
+                            name__iexact=category_name,
+                            is_archived=False,
+                        ).first()
+                    if category_obj is None and category_name:
+                        category_obj = Category.objects.create(
+                            name=category_name,
+                            company=company,
+                            created_by=request.user,
+                            updated_by=request.user,
+                        )
 
-                item_obj = Item.objects.filter(name__iexact=item_name).first()
+                item_obj = None
+                if company:
+                    item_obj = Item.objects.filter(
+                        company=company,
+                        name__iexact=item_name,
+                        is_archived=False,
+                    ).first()
 
                 if item_obj is None:
                     if not category_name:
@@ -602,11 +781,14 @@ def PurchaseCreateView(request):
             with transaction.atomic():
                 purchase_obj = Purchase.objects.create(
                     vendor=vendor_obj,
+                    company=company,
                     description=purchase_note,
                     delivery_date=delivery_date,
                     payment_mode=payment_mode,
-                    amount_paid=Decimal("0.00"),
-                    delivery_status="P",
+                    amount_paid=Decimal('0.00'),
+                    delivery_status='P',
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
 
                 for row in prepared_rows:
@@ -614,14 +796,17 @@ def PurchaseCreateView(request):
 
                     if item_obj is None:
                         item_obj = Item.objects.create(
-                            name=row["item_name"],
-                            description=row["item_description"],
-                            category=row["category_obj"],
+                            name=row['item_name'],
+                            description=row['item_description'],
+                            category=row['category_obj'],
+                            company=company,
                             quantity=0,
-                            price=float(row["price"]),
-                            gst_percentage=float(row["gst_percentage"]),
+                            price=float(row['price']),
+                            gst_percentage=float(row['gst_percentage']),
                             purchase_date=purchase_datetime,
-                            vendor=vendor_obj
+                            vendor=vendor_obj,
+                            created_by=request.user,
+                            updated_by=request.user,
                         )
                     else:
                         if row["category_obj"] is not None:
@@ -638,9 +823,10 @@ def PurchaseCreateView(request):
                     PurchaseItem.objects.create(
                         purchase=purchase_obj,
                         item=item_obj,
-                        quantity=row["quantity"],
-                        price=row["price"],
-                        gst_percentage=row["gst_percentage"],
+                        company=company,
+                        quantity=row['quantity'],
+                        price=row['price'],
+                        gst_percentage=row['gst_percentage'],
                     )
 
                     item_obj.quantity += row["quantity"]
@@ -649,9 +835,10 @@ def PurchaseCreateView(request):
                 if initial_amount_paid > 0:
                     PurchasePayment.objects.create(
                         purchase=purchase_obj,
+                        company=company,
                         amount=initial_amount_paid,
                         payment_mode=payment_mode,
-                        note="Initial payment"
+                        note='Initial payment',
                     )
 
                 purchase_obj.sync_payment_state(save=True)
@@ -685,7 +872,10 @@ def PurchaseCreateView(request):
 
 
 def add_purchase_payment(request, pk):
-    purchase = get_object_or_404(Purchase, pk=pk)
+    purchase = get_object_or_404(
+        filter_by_company(Purchase.objects.all(), request.user),
+        pk=pk,
+    )
 
     if request.method == "POST":
         purchase.sync_payment_state(save=True)
@@ -710,9 +900,10 @@ def add_purchase_payment(request, pk):
 
         PurchasePayment.objects.create(
             purchase=purchase,
+            company=purchase.company,
             amount=amount,
             payment_mode=payment_mode,
-            note=note
+            note=note,
         )
 
         purchase.payment_mode = payment_mode
@@ -724,10 +915,15 @@ def add_purchase_payment(request, pk):
     return redirect("purchase-detail", slug=purchase.slug)
 
 
-class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
+class PurchaseUpdateView(CoordinatorOrAdminMixin, UpdateView):
     model = Purchase
     form_class = PurchaseForm
     template_name = "transactions/purchases_form.html"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
     def get_success_url(self):
         return reverse("purchaseslist")
@@ -740,29 +936,174 @@ class PurchaseUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         self.object.sync_payment_state(save=True)
-        context["vendors"] = Vendor.objects.all().order_by("name")
+        context['vendors'] = filter_by_company(
+            Vendor.objects.all(), self.request.user,
+        ).order_by('name')
         context["purchase_items"] = self.object.purchase_items.select_related("item").all()
         context["payment_records"] = self.object.payments.all()
         return context
 
 
-class PurchaseDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+@login_required
+def add_sale_payment(request, pk):
+    sale = get_object_or_404(
+        filter_by_company(Sale.objects.all(), request.user),
+        pk=pk,
+    )
+
+    if request.method == 'POST':
+        sale.sync_payment_state(save=True)
+
+        amount_raw = request.POST.get('amount', '0')
+        payment_mode = request.POST.get('payment_mode', 'CASH')
+        note = request.POST.get('note', '').strip()
+
+        try:
+            amount = Decimal(str(amount_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, 'Invalid payment amount.')
+            return redirect('sale-detail', pk=sale.pk)
+
+        if amount <= 0:
+            messages.error(request, 'Payment amount must be greater than 0.')
+            return redirect('sale-detail', pk=sale.pk)
+
+        if amount > sale.remaining_amount:
+            messages.error(
+                request,
+                'Payment amount cannot exceed remaining amount.',
+            )
+            return redirect('sale-detail', pk=sale.pk)
+
+        SalePayment.objects.create(
+            sale=sale,
+            company=sale.company,
+            amount=amount,
+            payment_mode=payment_mode,
+            note=note,
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        sale.sync_payment_state(save=True)
+        messages.success(request, 'Payment recorded successfully.')
+
+    return redirect('sale-detail', pk=sale.pk)
+
+
+@login_required
+def update_sale_payment(request, pk):
+    payment = get_object_or_404(
+        filter_by_company(
+            SalePayment.objects.filter(is_archived=False),
+            request.user,
+        ),
+        pk=pk,
+    )
+
+    if request.method == 'POST':
+        amount_raw = request.POST.get('amount', '0')
+        payment_mode = request.POST.get('payment_mode', 'CASH')
+        note = request.POST.get('note', '').strip()
+
+        try:
+            amount = Decimal(str(amount_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, 'Invalid payment amount.')
+            return redirect('sale-detail', pk=payment.sale_id)
+
+        if amount <= 0:
+            messages.error(request, 'Payment amount must be greater than 0.')
+            return redirect('sale-detail', pk=payment.sale_id)
+
+        other_paid = payment.sale.payments.filter(
+            is_archived=False,
+        ).exclude(pk=payment.pk).aggregate(
+            total=Sum('amount'),
+        ).get('total') or Decimal('0.00')
+
+        if amount + other_paid > payment.sale.grand_total:
+            messages.error(
+                request,
+                'Total payments cannot exceed the sale grand total.',
+            )
+            return redirect('sale-detail', pk=payment.sale_id)
+
+        payment.amount = amount
+        payment.payment_mode = payment_mode
+        payment.note = note
+        payment.updated_by = request.user
+        payment.save()
+        payment.sale.sync_payment_state(save=True)
+        messages.success(request, 'Payment updated successfully.')
+
+    return redirect('sale-detail', pk=payment.sale_id)
+
+
+class SalePaymentUpdateView(CoordinatorOrAdminMixin, UpdateView):
+    model = SalePayment
+    fields = ['amount', 'payment_mode', 'note']
+    template_name = 'transactions/sale_payment_form.html'
+
+    def get_queryset(self):
+        return filter_by_company(
+            SalePayment.objects.filter(is_archived=False),
+            self.request.user,
+        )
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.updated_by = self.request.user
+        self.object.save()
+        self.object.sale.sync_payment_state(save=True)
+        messages.success(self.request, 'Payment updated successfully.')
+        return redirect('sale-detail', pk=self.object.sale_id)
+
+
+class SalePaymentArchiveView(CompanyAdminRequiredMixin, View):
+    def post(self, request, pk):
+        payment = get_object_or_404(
+            filter_by_company(
+                SalePayment.objects.filter(is_archived=False),
+                request.user,
+            ),
+            pk=pk,
+        )
+        archive_instance(payment, request.user)
+        payment.sale.sync_payment_state(save=True)
+        messages.success(request, 'Payment archived successfully.')
+        return redirect('sale-detail', pk=payment.sale_id)
+
+
+class PurchaseDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
     model = Purchase
-    template_name = "transactions/purchasedelete.html"
+    template_name = 'transactions/purchasedelete.html'
+    success_url = reverse_lazy('purchaseslist')
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    @property
+    def archive_success_message(self):
+        return 'Purchase archived successfully.'
 
-        for purchase_item in self.object.purchase_items.select_related("item").all():
-            purchase_item.item.quantity -= purchase_item.quantity
-            if purchase_item.item.quantity < 0:
-                purchase_item.item.quantity = 0
-            purchase_item.item.save(update_fields=["quantity"])
 
-        return super().post(request, *args, **kwargs)
+@login_required
+def archive_purchase_payment(request, pk):
+    if request.method != 'POST':
+        return redirect('purchaseslist')
 
-    def get_success_url(self):
-        return reverse("purchaseslist")
+    profile = getattr(request.user, 'profile', None)
+    if not request.user.is_superuser and (
+        profile is None or not profile.is_company_admin()
+    ):
+        messages.error(request, 'Only company admins can archive payments.')
+        return redirect('purchaseslist')
 
-    def test_func(self):
-        return self.request.user.is_superuser
+    payment = get_object_or_404(
+        filter_by_company(
+            PurchasePayment.objects.filter(is_archived=False),
+            request.user,
+        ),
+        pk=pk,
+    )
+    archive_instance(payment, request.user)
+    payment.purchase.sync_payment_state(save=True)
+    messages.success(request, 'Purchase payment archived successfully.')
+    return redirect('purchase-detail', slug=payment.purchase.slug)

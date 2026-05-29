@@ -125,29 +125,142 @@
         </div>
 
         <div class="row g-4 mt-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
                     <div class="card-body">
-                        <h6 class="fw-bold">Tax Amount</h6>
-                        <p class="mb-0">₹{{ sale.tax_amount }}</p>
+                        <h6 class="fw-bold">Customer GST</h6>
+                        <p class="mb-0">{{ sale.customer_gst_number|default:"NA" }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
                     <div class="card-body">
-                        <h6 class="fw-bold">Tax Percentage</h6>
-                        <p class="mb-0">{{ sale.tax_percentage }}%</p>
+                        <h6 class="fw-bold">Payment Status</h6>
+                        <p class="mb-0">{{ sale.payment_status }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
                     <div class="card-body">
                         <h6 class="fw-bold">Items Count</h6>
                         <p class="mb-0">{{ sale.sum_ }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Invoice</h6>
+                        <p class="mb-0">
+                            {% if invoice %}
+                            <a href="{% url 'invoice-detail' invoice.slug %}">View #{{ invoice.id }}</a>
+                            <a href="{% url 'invoice-pdf' invoice.slug %}" class="ms-2">PDF</a>
+                            {% else %}—{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="payment-details" class="row g-4 mt-1">
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm" style="border-radius: 22px;">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Payment History</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Mode</th>
+                                        <th>Amount</th>
+                                        <th>Note</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payment_records %}
+                                    <tr>
+                                        <td>{{ payment.paid_on|date:"M d, Y H:i" }}</td>
+                                        <td>{{ payment.get_payment_mode_display }}</td>
+                                        <td>₹{{ payment.amount }}</td>
+                                        <td>{{ payment.note|default:"-" }}</td>
+                                        <td class="text-end">
+                                            <a href="{% url 'sale-payment-update' payment.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
+                                            <form method="post" action="{% url 'sale-payment-archive' payment.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">Archive</button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No payment records yet</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm" style="border-radius: 22px;">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Add Payment</h5>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Amount</span>
+                                <strong>₹{{ sale.grand_total }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Amount Paid</span>
+                                <strong>₹{{ sale.amount_paid }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Remaining</span>
+                                <strong>₹{{ sale.remaining_amount }}</strong>
+                            </div>
+                        </div>
+
+                        {% if sale.remaining_amount > 0 %}
+                        <form method="POST" action="{% url 'sale-add-payment' sale.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Amount</label>
+                                <input type="number" step="0.01" min="0.01" name="amount" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Payment Mode</label>
+                                <select name="payment_mode" class="form-control" required>
+                                    <option value="CASH">Cash</option>
+                                    <option value="CREDIT_CARD">Credit Card</option>
+                                    <option value="DEBIT_CARD">Debit Card</option>
+                                    <option value="CHEQUE">Cheque</option>
+                                    <option value="UPI">UPI</option>
+                                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Note</label>
+                                <input type="text" name="note" class="form-control" placeholder="Optional note">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Save Payment</button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-success mb-0">
+                            Full payment received.
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

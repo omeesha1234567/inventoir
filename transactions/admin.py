@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Sale, SaleDetail, Purchase, PurchaseItem
+from .models import Sale, SaleDetail, Purchase, PurchaseItem, SalePayment
 
 
 class SaleDetailInline(admin.TabularInline):
@@ -7,11 +7,29 @@ class SaleDetailInline(admin.TabularInline):
     extra = 0
 
 
+@admin.register(SalePayment)
+class SalePaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "sale",
+        "amount",
+        "payment_mode",
+        "paid_on",
+        "is_archived",
+    )
+    list_filter = ("payment_mode", "is_archived")
+    ordering = ("-paid_on", "-id")
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "customer",
+        "customer_gst_number",
         "sub_total",
         "grand_total",
         "amount_paid",
@@ -20,6 +38,7 @@ class SaleAdmin(admin.ModelAdmin):
     )
     search_fields = ("customer__first_name", "customer__last_name", "id")
     list_filter = ("date_added",)
+    ordering = ("-date_added", "-id")
     inlines = [SaleDetailInline]
 
 
@@ -37,6 +56,7 @@ class PurchaseItemInline(admin.TabularInline):
 
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):
+    ordering = ("-order_date", "-id")
     list_display = (
         "id",
         "vendor",

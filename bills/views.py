@@ -30,6 +30,9 @@ class BillListView(LoginRequiredMixin, ExportMixin, SingleTableView):
     paginate_by = 10
     SingleTableView.table_pagination = False
 
+    def get_queryset(self):
+        return super().get_queryset().order_by('-id')
+
 
 class BillCreateView(LoginRequiredMixin, CreateView):
     """View for creating a new bill."""

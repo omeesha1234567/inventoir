@@ -11,7 +11,25 @@ from django.db.models.functions import Lower
 from django.contrib import messages
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages as django_messages
+
+from accounts.mixins import (
+    CompanyAccessMixin,
+    CompanyAdminRequiredMixin,
+    CoordinatorOrAdminMixin,
+)
+from accounts.models import ROLE_COMPANY_ADMIN, ROLE_COORDINATOR
+from accounts.tenant import scoped_queryset
+from accounts.utils import (
+    assign_company,
+    filter_by_company,
+    get_user_company,
+    set_audit_user,
+)
+from companies.archive_views import ArchivableDeleteView
+from companies.base import archive_instance
+from store.dashboard_services import get_dashboard_metrics
 
 from django.views.generic import (
     DetailView, CreateView, UpdateView, DeleteView, ListView
@@ -26,79 +44,85 @@ from .models import Category, Item, Delivery
 from .forms import ItemForm, CategoryForm, DeliveryForm
 from .tables import ItemTable
 
+def _dashboard_context(request, *, coordinator=False):
+    company = get_user_company(request.user)
+    if request.user.is_superuser and company is None:
+        from accounts.utils import get_default_company
+        company = get_default_company()
+    if company is None:
+        return None
+    metrics = get_dashboard_metrics(company, coordinator=coordinator)
+    cf = {'company': company}
+    sale_dates = (
+        Sale.active.filter(**cf)
+        .values('date_added__date')
+        .annotate(total_sales=Sum('grand_total'))
+        .order_by('date_added__date')
+    )
+    metrics['sale_dates_labels'] = [
+        e['date_added__date'].strftime('%Y-%m-%d')
+        for e in sale_dates if e['date_added__date']
+    ]
+    metrics['sale_dates_values'] = [
+        float(e['total_sales'] or 0) for e in sale_dates if e['date_added__date']
+    ]
+    purchase_dates = (
+        Purchase.active.filter(**cf)
+        .values('delivery_date')
+        .annotate(total_purchases=Count('id'))
+        .order_by('delivery_date')
+    )
+    metrics['purchase_dates_labels'] = [
+        e['delivery_date'].strftime('%Y-%m-%d')
+        for e in purchase_dates if e['delivery_date']
+    ]
+    metrics['purchase_dates_values'] = [
+        int(e['total_purchases'] or 0) for e in purchase_dates if e['delivery_date']
+    ]
+    metrics['is_coordinator_dashboard'] = coordinator
+    metrics['is_admin_dashboard'] = not coordinator
+    return metrics
+
+
 @login_required
 def dashboard(request):
-    profiles = Profile.objects.all()
-    items = Item.objects.all()
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == ROLE_COORDINATOR:
+        return redirect('coordinator-dashboard')
+    return redirect('admin-dashboard')
 
-    total_items = Item.objects.aggregate(
-        total_quantity=Sum("quantity")
-    ).get("total_quantity") or 0
 
-    items_count = items.count()
-    profiles_count = profiles.count()
-    sales_count = Sale.objects.count()
-    total_categories = Category.objects.count()
-
-    sale_dates = (
-        Sale.objects.values("date_added__date")
-        .annotate(total_sales=Sum("grand_total"))
-        .order_by("date_added__date")
-    )
-
-    sale_dates_labels = [
-        entry["date_added__date"].strftime("%Y-%m-%d")
-        for entry in sale_dates
-        if entry["date_added__date"]
-    ]
-    sale_dates_values = [
-        float(entry["total_sales"] or 0)
-        for entry in sale_dates
-        if entry["date_added__date"]
-    ]
-
-    purchase_dates = (
-        Purchase.objects.values("delivery_date")
-        .annotate(total_purchases=Count("id"))
-        .order_by("delivery_date")
-    )
-
-    purchase_dates_labels = [
-        entry["delivery_date"].strftime("%Y-%m-%d")
-        for entry in purchase_dates
-        if entry["delivery_date"]
-    ]
-    purchase_dates_values = [
-        int(entry["total_purchases"] or 0)
-        for entry in purchase_dates
-        if entry["delivery_date"]
-    ]
-
-    context = {
-        "items": items,
-        "profiles": profiles,
-        "profiles_count": profiles_count,
-        "items_count": items_count,
-        "total_items": total_items,
-        "total_categories": total_categories,
-        "sales_count": sales_count,
-        "vendors": Vendor.objects.all(),
-        "delivery": Delivery.objects.all(),
-        "sales": Sale.objects.all(),
-        "sale_dates_labels": sale_dates_labels,
-        "sale_dates_values": sale_dates_values,
-        "purchase_dates_labels": purchase_dates_labels,
-        "purchase_dates_values": purchase_dates_values,
-    }
-
-    response = render(request, "store/dashboard.html", context)
-    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response["Pragma"] = "no-cache"
-    response["Expires"] = "0"
+@login_required
+def admin_dashboard(request):
+    profile = getattr(request.user, 'profile', None)
+    if not request.user.is_superuser:
+        if profile is None or not profile.is_company_admin():
+            return redirect('coordinator-dashboard')
+    context = _dashboard_context(request, coordinator=False)
+    if context is None:
+        django_messages.error(request, 'No company assigned.')
+        return redirect('owner-login')
+    response = render(request, 'store/admin_dashboard.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
 
-class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
+@login_required
+def coordinator_dashboard(request):
+    profile = getattr(request.user, 'profile', None)
+    if not request.user.is_superuser:
+        if profile is None or not profile.is_coordinator():
+            return redirect('admin-dashboard')
+    context = _dashboard_context(request, coordinator=True)
+    if context is None:
+        django_messages.error(request, 'No company assigned.')
+        return redirect('coordinator-login')
+    response = render(request, 'store/coordinator_dashboard.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+
+class ProductListView(CompanyAccessMixin, ExportMixin, tables.SingleTableView):
     model = Item
     table_class = ItemTable
     template_name = "store/productslist.html"
@@ -107,14 +131,22 @@ class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     tables.SingleTableView.table_pagination = False
 
     def get_queryset(self):
-        return Item.objects.select_related("category", "vendor").order_by("name")
+        return (
+            super()
+            .get_queryset()
+            .select_related('category', 'vendor')
+            .order_by('name')
+        )
 
 
 class ItemSearchListView(ProductListView):
     paginate_by = 10
 
     def get_queryset(self):
-        result = Item.objects.select_related("category", "vendor").all().order_by("name")
+        result = filter_by_company(
+            Item.objects.select_related('category', 'vendor'),
+            self.request.user,
+        ).order_by('name')
 
         query = self.request.GET.get("q")
         if query:
@@ -133,7 +165,7 @@ class ItemSearchListView(ProductListView):
         return result
 
 
-class ProductDetailView(LoginRequiredMixin, DetailView):
+class ProductDetailView(CompanyAccessMixin, DetailView):
     model = Item
     template_name = "store/productdetail.html"
     context_object_name = "item"
@@ -164,7 +196,7 @@ class ProductDetailView(LoginRequiredMixin, DetailView):
 
         return context
 
-class ProductCreateView(LoginRequiredMixin, CreateView):
+class ProductCreateView(CoordinatorOrAdminMixin, CreateView):
     model = Item
     template_name = "store/productcreate.html"
     form_class = ItemForm
@@ -172,57 +204,76 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["categories"] = Category.objects.all().order_by("name")
-        context["vendors"] = Vendor.objects.all().order_by("name")
+        context['categories'] = filter_by_company(
+            Category.objects.all(), self.request.user,
+        ).order_by('name')
+        context['vendors'] = filter_by_company(
+            Vendor.objects.all(), self.request.user,
+        ).order_by('name')
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = get_user_company(self.request.user)
+        kwargs['user'] = self.request.user
+        return kwargs
 
-class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        assign_company(self.object, self.request.user)
+        set_audit_user(self.object, self.request.user, is_create=True)
+        self.object.save()
+        return redirect(self.success_url)
+
+
+class ProductUpdateView(CoordinatorOrAdminMixin, UpdateView):
     model = Item
     template_name = "store/productupdate.html"
     form_class = ItemForm
     success_url = reverse_lazy("productslist")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = get_user_company(self.request.user)
+        kwargs['user'] = self.request.user
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["categories"] = Category.objects.all().order_by("name")
-        context["vendors"] = Vendor.objects.all().order_by("name")
+        context['categories'] = filter_by_company(
+            Category.objects.all(), self.request.user,
+        ).order_by('name')
+        context['vendors'] = filter_by_company(
+            Vendor.objects.all(), self.request.user,
+        ).order_by('name')
         return context
 
-    def test_func(self):
-        return self.request.user.is_superuser
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        set_audit_user(self.object, self.request.user)
+        self.object.save()
+        return redirect(self.success_url)
 
 
-class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ProductDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
+    """Archive-only: never hard-deletes."""
     model = Item
-    template_name = "store/productdelete.html"
-    success_url = reverse_lazy("productslist")
+    template_name = 'store/productdelete.html'
+    success_url = reverse_lazy('productslist')
 
-    def test_func(self):
-        return self.request.user.is_superuser
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        used_in_sales = SaleDetail.objects.filter(item=self.object).exists()
-        used_in_purchases = PurchaseItem.objects.filter(item=self.object).exists()
-
-        if used_in_sales or used_in_purchases:
-            messages.error(
-                request,
-                "This product cannot be deleted because it is already linked to sales or purchases."
-            )
-            return redirect("productslist")
-
-        messages.success(request, "Product deleted successfully.")
-        return super().post(request, *args, **kwargs)
+    @property
+    def archive_success_message(self):
+        return 'Product archived successfully.'
 
 
-class DeliveryListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
+class DeliveryListView(CompanyAccessMixin, ExportMixin, tables.SingleTableView):
     model = Delivery
     pagination = 10
     template_name = "store/deliveries.html"
     context_object_name = "deliveries"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('item').order_by('-date', '-id')
 
 
 class DeliverySearchListView(DeliveryListView):
@@ -243,35 +294,37 @@ class DeliverySearchListView(DeliveryListView):
         return result
 
 
-class DeliveryDetailView(LoginRequiredMixin, DetailView):
+class DeliveryDetailView(CompanyAccessMixin, DetailView):
     model = Delivery
     template_name = "store/deliverydetail.html"
 
 
-class DeliveryCreateView(LoginRequiredMixin, CreateView):
+class DeliveryCreateView(CoordinatorOrAdminMixin, CreateView):
     model = Delivery
     form_class = DeliveryForm
     template_name = "store/delivery_form.html"
     success_url = "/deliveries"
 
 
-class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
+class DeliveryUpdateView(CoordinatorOrAdminMixin, UpdateView):
     model = Delivery
     form_class = DeliveryForm
     template_name = "store/delivery_form.html"
     success_url = "/deliveries"
 
 
-class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class DeliveryDeleteView(CompanyAdminRequiredMixin, DeleteView):
     model = Delivery
-    template_name = "store/productdelete.html"
-    success_url = "/deliveries"
+    success_url = '/deliveries'
 
-    def test_func(self):
-        return self.request.user.is_superuser
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        messages.success(request, 'Delivery removed.')
+        return redirect(self.success_url)
 
 
-class CategoryListView(LoginRequiredMixin, ListView):
+class CategoryListView(CompanyAccessMixin, ListView):
     model = Category
     template_name = "store/category_list.html"
     context_object_name = "categories"
@@ -280,16 +333,17 @@ class CategoryListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return (
-            Category.objects
+            super()
+            .get_queryset()
             .annotate(
-                item_count=Count("item"),
-                name_lower=Lower("name")
+                item_count=Count('item'),
+                name_lower=Lower('name'),
             )
-            .order_by("name_lower", "name")
+            .order_by('name_lower', 'name')
         )
 
 
-class CategoryDetailView(LoginRequiredMixin, DetailView):
+class CategoryDetailView(CompanyAccessMixin, DetailView):
     model = Category
     template_name = "store/category_detail.html"
     context_object_name = "category"
@@ -298,8 +352,10 @@ class CategoryDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["category_items"] = (
-            Item.objects
-            .filter(category=self.object)
+            filter_by_company(
+                Item.objects.filter(category=self.object),
+                self.request.user,
+            )
             .select_related("vendor")
             .order_by("name")
         )
@@ -310,7 +366,24 @@ class CategoryDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class CategoryCreateView(LoginRequiredMixin, CreateView):
+class CategoryCreateView(CoordinatorOrAdminMixin, CreateView):
+    model = Category
+    template_name = "store/category_form.html"
+    form_class = CategoryForm
+    login_url = "login"
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        assign_company(self.object, self.request.user)
+        set_audit_user(self.object, self.request.user, is_create=True)
+        self.object.save()
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse_lazy("category-detail", kwargs={"pk": self.object.pk})
+
+
+class CategoryUpdateView(CoordinatorOrAdminMixin, UpdateView):
     model = Category
     template_name = "store/category_form.html"
     form_class = CategoryForm
@@ -320,45 +393,15 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy("category-detail", kwargs={"pk": self.object.pk})
 
 
-class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+class CategoryDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
     model = Category
-    template_name = "store/category_form.html"
-    form_class = CategoryForm
-    login_url = "login"
+    template_name = 'store/category_confirm_delete.html'
+    success_url = reverse_lazy('category-list')
+    login_url = 'login'
 
-    def get_success_url(self):
-        return reverse_lazy("category-detail", kwargs={"pk": self.object.pk})
-
-
-class CategoryDeleteView(LoginRequiredMixin, DeleteView):
-    model = Category
-    template_name = "store/category_confirm_delete.html"
-    context_object_name = "category"
-    success_url = reverse_lazy("category-list")
-    login_url = "login"
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-
-        category_items = Item.objects.filter(category=self.object)
-
-        if not category_items.exists():
-            messages.success(request, "Category deleted successfully.")
-            return super().post(request, *args, **kwargs)
-
-        used_in_sales = SaleDetail.objects.filter(item__in=category_items).exists()
-        used_in_purchases = PurchaseItem.objects.filter(item__in=category_items).exists()
-
-        if used_in_sales or used_in_purchases:
-            messages.error(
-                request,
-                "This category cannot be deleted because one or more items in it are already linked to sales or purchases."
-            )
-            return redirect("category-detail", pk=self.object.pk)
-
-        category_items.delete()
-        messages.success(request, "Category and its unused items deleted successfully.")
-        return super().post(request, *args, **kwargs)
+    @property
+    def archive_success_message(self):
+        return 'Category archived successfully.'
 
 def is_ajax(request):
     return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
@@ -373,7 +416,9 @@ def get_items_ajax_view(request):
             term = request.POST.get("term", "")
             data = []
 
-            items = Item.objects.filter(name__icontains=term)
+            items = scoped_queryset(Item, request.user).filter(
+                name__icontains=term,
+            )
             for item in items[:10]:
                 data.append(item.to_json())
 

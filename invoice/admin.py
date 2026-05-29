@@ -15,6 +15,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         "id",
         "sale",
         "customer_name",
+        "customer_gst_number",
         "contact_number",
         "total",
         "shipping",
@@ -24,6 +25,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
     search_fields = ("customer_name", "contact_number", "sale__id")
     list_filter = ("date",)
+    ordering = ("-date", "-id")
     readonly_fields = (
         "sale",
         "customer_name",
@@ -41,3 +43,4 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     list_display = ("id", "invoice", "item", "price", "quantity", "line_total")
     search_fields = ("invoice__id", "item__name")
     readonly_fields = ("line_total",)
+    ordering = ("-id",)

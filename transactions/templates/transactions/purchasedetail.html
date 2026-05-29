@@ -121,6 +121,7 @@
                                         <th>Mode</th>
                                         <th>Amount</th>
                                         <th>Note</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -130,10 +131,18 @@
                                         <td>{{ payment.get_payment_mode_display }}</td>
                                         <td>₹{{ payment.amount }}</td>
                                         <td>{{ payment.note|default:"-" }}</td>
+                                        <td class="text-end">
+                                            {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
+                                            <form method="post" action="{% url 'purchase-payment-archive' payment.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">Archive</button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">No payment records yet</td>
+                                        <td colspan="5" class="text-center text-muted">No payment records yet</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

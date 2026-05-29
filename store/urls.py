@@ -25,6 +25,12 @@ from .views import (
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('owner/dashboard/', views.admin_dashboard, name='admin-dashboard'),
+    path(
+        'coordinator/dashboard/',
+        views.coordinator_dashboard,
+        name='coordinator-dashboard',
+    ),
 
     path('products/', ProductListView.as_view(), name='productslist'),
     path(

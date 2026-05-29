@@ -149,9 +149,11 @@
                                             <i class="fa-solid fa-eye me-1"></i> View
                                         </a>
 
-                                        <a href="{% url 'sale-delete' sale.slug %}" class="btn action-btn delete">
-                                            <i class="fa-solid fa-trash me-1"></i> Delete
+                                        {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
+                                        <a href="{% url 'sale-delete' sale.pk %}" class="btn action-btn delete" style="border-color: #d97706; color: #d97706;">
+                                            <i class="fa-solid fa-box-archive me-1"></i> Archive
                                         </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

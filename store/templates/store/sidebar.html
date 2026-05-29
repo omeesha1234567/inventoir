@@ -14,18 +14,20 @@
             <div class="ms-3">
                 <h5 class="fs-6 mb-1">
                     {{ request.user.username }}
-                    {% if request.user.profile.role == 'AD' %}
+                    {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' %}
                         <i class="fa-solid fa-circle-check ms-1 admin-check"></i>
                     {% endif %}
                 </h5>
 
                 <span class="badge role-badge">
-                    {% if request.user.profile.role == 'AD' %}
-                        Admin
+                    {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' %}
+                        Company Admin
+                    {% elif request.user.profile.role == 'CO' %}
+                        Coordinator
                     {% elif request.user.profile.role == 'EX' %}
                         Executive
                     {% else %}
-                        Operative
+                        Staff
                     {% endif %}
                 </span>
             </div>
@@ -35,8 +37,8 @@
     <div class="nav-container">
         <ul class="nav flex-column mt-2">
             <li class="nav-item mb-2">
-                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                   href="{% url 'dashboard' %}">
+                <a class="nav-link {% if request.resolver_match.url_name == 'admin-dashboard' or request.resolver_match.url_name == 'coordinator-dashboard' %}active{% endif %}"
+                   href="{% if request.user.profile.role == 'CO' or request.user.profile.role == 'OP' or request.user.profile.role == 'EX' %}{% url 'coordinator-dashboard' %}{% else %}{% url 'admin-dashboard' %}{% endif %}">
                     <i class="fa fa-tachometer-alt fa-fw me-2"></i> Dashboard
                 </a>
             </li>
@@ -80,12 +82,12 @@
                 </a>
             </li>
 
-            <li class="nav-item mb-2">
+            <!-- <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}"
                    href="{% url 'deliveries' %}">
-                    <i class="fa-solid fa-box me-2"></i> Package
+                     <i class="fa-solid fa-box me-2"></i> Package 
                 </a>
-            </li>
+            </li> -->
 
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'invoicelist' %}active{% endif %}"
@@ -94,12 +96,12 @@
                 </a>
             </li>
 
-            <li class="nav-item mb-2">
+            <!-- <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
                    href="{% url 'bill_list' %}">
                     <i class="fa-solid fa-file-invoice me-2"></i> Bills
                 </a>
-            </li>
+            </li> -->
 
             <li class="nav-item mb-2 dropdown">
                 <a class="nav-link {% if request.resolver_match.url_name == 'profile_list' or request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'vendor-list' %}active{% endif %} dropdown-toggle"
@@ -111,12 +113,14 @@
                     <i class="fa fa-users me-2"></i> Accounts
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="accountsDropdown">
+                    {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
                     <li>
-                        <a class="dropdown-item {% if request.resolver_match.url_name == 'profile_list' %}active{% endif %}"
-                           href="{% url 'profile_list' %}">
-                            All Staff
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'coordinator-list' %}active{% endif %}"
+                           href="{% url 'coordinator-list' %}">
+                            Coordinators
                         </a>
                     </li>
+                    {% endif %}
                     <li>
                         <a class="dropdown-item {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}"
                            href="{% url 'customer_list' %}">
@@ -131,6 +135,24 @@
                     </li>
                 </ul>
             </li>
+
+            {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
+            <li class="nav-item mb-2 mt-2">
+                <span class="text-uppercase small text-muted px-3" style="font-size: 0.7rem; letter-spacing: 0.05em;">Admin</span>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'company-settings' %}active{% endif %}"
+                   href="{% url 'company-settings' %}">
+                    <i class="fa fa-building me-2"></i> Company Settings
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'archived-records' %}active{% endif %}"
+                   href="{% url 'archived-records' 'customers' %}">
+                    <i class="fa fa-box-archive me-2"></i> Archived Records
+                </a>
+            </li>
+            {% endif %}
         </ul>
     </div>
 

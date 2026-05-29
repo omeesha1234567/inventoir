@@ -1,14 +1,22 @@
 # Django core imports
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.urls import reverse_lazy, reverse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 # Authentication and permissions
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
+from accounts.mixins import (
+    CompanyAccessMixin,
+    CompanyAdminRequiredMixin,
+    CoordinatorOrAdminMixin,
+)
+from accounts.utils import assign_company, filter_by_company, set_audit_user
+from accounts.tenant import scoped_queryset
+from companies.archive_views import ArchivableDeleteView
 # Class-based views
 from django.views.generic import (
     ListView,
@@ -32,21 +40,7 @@ from .tables import ProfileTable
 
 
 def register(request):
-    """
-    Handle user registration.
-    If the request is POST, process the form data to create a new user.
-    Redirect to the login page on successful registration.
-    For GET requests, render the registration form.
-    """
-    if request.method == 'POST':
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('user-login')
-    else:
-        form = CreateUserForm()
-
-    return render(request, 'accounts/register.html', {'form': form})
+    return redirect('company-register')
 
 
 @login_required
@@ -172,7 +166,7 @@ class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user.is_superuser
 
 
-class CustomerListView(LoginRequiredMixin, ListView):
+class CustomerListView(CompanyAccessMixin, ListView):
     """
     View for listing all customers.
 
@@ -181,9 +175,17 @@ class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = 'accounts/customer_list.html'
     context_object_name = 'customers'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .order_by('first_name', 'last_name', 'id')
+        )
 
 
-class CustomerCreateView(LoginRequiredMixin, CreateView):
+class CustomerCreateView(CoordinatorOrAdminMixin, CreateView):
     """
     View for creating a new customer.
 
@@ -196,8 +198,15 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
     form_class = CustomerForm
     success_url = reverse_lazy('customer_list')
 
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        assign_company(self.object, self.request.user)
+        set_audit_user(self.object, self.request.user, is_create=True)
+        self.object.save()
+        return redirect(self.success_url)
 
-class CustomerUpdateView(LoginRequiredMixin, UpdateView):
+
+class CustomerUpdateView(CoordinatorOrAdminMixin, UpdateView):
     """
     View for updating an existing customer.
 
@@ -210,60 +219,88 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
     form_class = CustomerForm
     success_url = reverse_lazy('customer_list')
 
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        set_audit_user(self.object, self.request.user)
+        self.object.save()
+        return redirect(self.success_url)
 
-class CustomerDeleteView(LoginRequiredMixin, DeleteView):
-    """
-    View for deleting a customer.
 
-    Requires the user to be logged in.
-    Displays a confirmation page for deleting an existing Customer object.
-    On confirmation, deletes the object and redirects to the customer list.
-    """
+class CustomerDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
     model = Customer
     template_name = 'accounts/customer_confirm_delete.html'
     success_url = reverse_lazy('customer_list')
+
+    @property
+    def archive_success_message(self):
+        return 'Customer archived successfully.'
 
 
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
-@csrf_exempt
 @require_POST
 @login_required
 def get_customers(request):
     if is_ajax(request) and request.method == 'POST':
         term = request.POST.get('term', '')
-        customers = Customer.objects.filter(
-            name__icontains=term
-        ).values('id', 'name')
-        customer_list = list(customers)
+        customers = scoped_queryset(Customer, request.user).filter(
+            Q(first_name__icontains=term) | Q(last_name__icontains=term),
+        ).values('id', 'first_name', 'last_name')
+        customer_list = [
+            {
+                'id': c['id'],
+                'name': f"{c['first_name']} {c['last_name'] or ''}".strip(),
+            }
+            for c in customers
+        ]
         return JsonResponse(customer_list, safe=False)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
-class VendorListView(LoginRequiredMixin, ListView):
+class VendorListView(CompanyAccessMixin, ListView):
     model = Vendor
     template_name = 'accounts/vendor_list.html'
     context_object_name = 'vendors'
     paginate_by = 10
 
+    def get_queryset(self):
+        return super().get_queryset().order_by('name', 'id')
 
-class VendorCreateView(LoginRequiredMixin, CreateView):
+
+class VendorCreateView(CoordinatorOrAdminMixin, CreateView):
     model = Vendor
     form_class = VendorForm
     template_name = 'accounts/vendor_form.html'
     success_url = reverse_lazy('vendor-list')
 
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        assign_company(self.object, self.request.user)
+        set_audit_user(self.object, self.request.user, is_create=True)
+        self.object.save()
+        return redirect(self.success_url)
 
-class VendorUpdateView(LoginRequiredMixin, UpdateView):
+
+class VendorUpdateView(CoordinatorOrAdminMixin, UpdateView):
     model = Vendor
     form_class = VendorForm
     template_name = 'accounts/vendor_form.html'
     success_url = reverse_lazy('vendor-list')
 
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        set_audit_user(self.object, self.request.user)
+        self.object.save()
+        return redirect(self.success_url)
 
-class VendorDeleteView(LoginRequiredMixin, DeleteView):
+
+class VendorDeleteView(CompanyAdminRequiredMixin, ArchivableDeleteView):
     model = Vendor
     template_name = 'accounts/vendor_confirm_delete.html'
     success_url = reverse_lazy('vendor-list')
+
+    @property
+    def archive_success_message(self):
+        return 'Vendor archived successfully.'
