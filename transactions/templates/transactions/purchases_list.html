@@ -142,6 +142,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th>Invoice ID</th>
                                 <th>Date</th>
                                 <th>Vendor</th>
                                 <th>Items Count</th>
@@ -159,6 +160,7 @@
                             {% for purchase in purchases %}
                             <tr>
                                 <td>{{ purchase.id }}</td>
+                                <td>{{ purchase.invoice_id|default:"-" }}</td>
                                 <td>{{ purchase.delivery_date|date:"M d, Y" }}</td>
                                 <td>{{ purchase.vendor.name }}</td>
                                 <td>{{ purchase.items_count }}</td>
@@ -209,7 +211,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="11" class="text-muted py-4">
+                                <td colspan="12" class="text-muted py-4">
                                     No purchase records found
                                 </td>
                             </tr>

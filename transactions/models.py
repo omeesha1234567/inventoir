@@ -160,6 +160,13 @@ class Purchase(CompanyOwnedModel, ArchivableModel, AuditedModel):
         related_name="purchases",
         on_delete=models.CASCADE,
     )
+    invoice_id = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="Invoice ID",
+    )
     description = models.TextField(max_length=300, blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateField(
@@ -198,6 +205,9 @@ class Purchase(CompanyOwnedModel, ArchivableModel, AuditedModel):
 
     @property
     def slug_source(self):
+        if self.invoice_id:
+            return self.invoice_id
+
         vendor_name = self.vendor.name if self.vendor else "purchase"
         if self.delivery_date:
             return f"{vendor_name}-{self.delivery_date}"
@@ -240,6 +250,8 @@ class Purchase(CompanyOwnedModel, ArchivableModel, AuditedModel):
             self.save(update_fields=["amount_paid", "delivery_status"])
 
     def __str__(self):
+        if self.invoice_id:
+            return f"{self.invoice_id} - {self.vendor.name}"
         return f"Purchase #{self.id} - {self.vendor.name}"
 
 

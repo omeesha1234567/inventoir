@@ -234,12 +234,17 @@
                         </div>
 
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="fw-semibold mb-2" style="color: #374151;">Address</label>
                                 <input type="text" id="vendor_address" class="form-control" placeholder="Enter vendor address">
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="fw-semibold mb-2" style="color: #374151;">Invoice ID</label>
+                                <input type="text" id="invoice_id" class="form-control" placeholder="Enter invoice ID">
+                            </div>
+
+                            <div class="col-md-4">
                                 <label class="fw-semibold mb-2" style="color: #374151;">Purchase Date</label>
                                 <input type="date" id="delivery_date" class="form-control">
                             </div>
@@ -498,6 +503,7 @@
         document.getElementById('vendor_email').value = '';
         document.getElementById('vendor_gst_number').value = '';
         document.getElementById('vendor_address').value = '';
+        document.getElementById('invoice_id').value = '';
         document.getElementById('delivery_date').value = '';
         document.getElementById('purchase_description').value = '';
         document.getElementById('payment_mode').selectedIndex = 0;
@@ -622,6 +628,7 @@
             const vendorEmail = document.getElementById('vendor_email').value.trim();
             const vendorGstNumber = document.getElementById('vendor_gst_number').value.trim();
             const vendorAddress = document.getElementById('vendor_address').value.trim();
+            const invoiceId = document.getElementById('invoice_id').value.trim();
 
             const deliveryDate = document.getElementById('delivery_date').value;
             const paymentMode = document.getElementById('payment_mode').value;
@@ -635,6 +642,15 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'Vendor is required.'
+                });
+                return;
+            }
+
+            if (!invoiceId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Invoice ID is required.'
                 });
                 return;
             }
@@ -710,6 +726,7 @@
                 vendor_email: vendorEmail,
                 vendor_gst_number: vendorGstNumber,
                 vendor_address: vendorAddress,
+                invoice_id: invoiceId,
                 delivery_date: deliveryDate,
                 payment_mode: paymentMode,
                 amount_paid: amountPaid,

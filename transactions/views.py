@@ -604,6 +604,7 @@ def PurchaseCreateView(request):
     company = resolve_request_company(request)
     if company is None and not request.user.is_superuser:
         return redirect('owner-login')
+
     context = {
         'active_icon': 'purchases',
         'items': scoped_queryset(Item, request.user).order_by('name'),
@@ -622,6 +623,7 @@ def PurchaseCreateView(request):
             vendor_email = normalize_text(data.get("vendor_email", ""))
             vendor_gst_number = normalize_text(data.get("vendor_gst_number", ""))
             vendor_address = normalize_text(data.get("vendor_address", ""))
+            invoice_id = normalize_text(data.get("invoice_id", ""))
 
             purchase_note = str(data.get("description", "")).strip()
             payment_mode = data.get("payment_mode", "CASH")
@@ -636,6 +638,15 @@ def PurchaseCreateView(request):
 
             if not vendor_name:
                 raise ValueError("Vendor is required")
+
+            if not invoice_id:
+                raise ValueError("Invoice ID is required")
+
+            existing_purchase = scoped_queryset(Purchase, request.user).filter(
+                invoice_id__iexact=invoice_id
+            ).first()
+            if existing_purchase:
+                raise ValueError("Invoice ID already exists")
 
             if payment_mode not in valid_payment_modes:
                 raise ValueError("Invalid payment mode")
@@ -731,14 +742,13 @@ def PurchaseCreateView(request):
 
                 category_obj = None
                 if category_name:
-                    category_obj = None
-                    if company and category_name:
-                        category_obj = Category.objects.filter(
-                            company=company,
-                            name__iexact=category_name,
-                            is_archived=False,
-                        ).first()
-                    if category_obj is None and category_name:
+                    category_obj = Category.objects.filter(
+                        company=company,
+                        name__iexact=category_name,
+                        is_archived=False,
+                    ).first()
+
+                    if category_obj is None:
                         category_obj = Category.objects.create(
                             name=category_name,
                             company=company,
@@ -746,17 +756,16 @@ def PurchaseCreateView(request):
                             updated_by=request.user,
                         )
 
-                item_obj = None
-                if company:
-                    item_obj = Item.objects.filter(
-                        company=company,
-                        name__iexact=item_name,
-                        is_archived=False,
-                    ).first()
+                item_obj = Item.objects.filter(
+                    company=company,
+                    name__iexact=item_name,
+                    is_archived=False,
+                ).first()
 
                 if item_obj is None:
                     if not category_name:
                         raise ValueError(f"Category is required for new product: {item_name}")
+
                     if not item_description:
                         raise ValueError(f"Description is required for new product: {item_name}")
 
@@ -782,6 +791,7 @@ def PurchaseCreateView(request):
                 purchase_obj = Purchase.objects.create(
                     vendor=vendor_obj,
                     company=company,
+                    invoice_id=invoice_id,
                     description=purchase_note,
                     delivery_date=delivery_date,
                     payment_mode=payment_mode,

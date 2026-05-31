@@ -32,6 +32,15 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
                     <div class="card-body">
+                        <h6 class="fw-bold">Invoice ID</h6>
+                        <p class="mb-0">{{ purchase.invoice_id|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
+                    <div class="card-body">
                         <h6 class="fw-bold">Vendor</h6>
                         <p class="mb-0">{{ purchase.vendor.name }}</p>
                     </div>
@@ -50,15 +59,6 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
                     <div class="card-body">
-                        <h6 class="fw-bold">Total Amount</h6>
-                        <p class="mb-0">₹{{ purchase.total_value }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
-                    <div class="card-body">
                         <h6 class="fw-bold">Status</h6>
                         <p class="mb-0">
                             {% if purchase.delivery_status == 'S' %}
@@ -67,6 +67,26 @@
                                 Pending
                             {% endif %}
                         </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Total Amount</h6>
+                        <p class="mb-0">₹{{ purchase.total_value }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 18px;">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Payment Mode</h6>
+                        <p class="mb-0">{{ purchase.get_payment_mode_display }}</p>
                     </div>
                 </div>
             </div>
