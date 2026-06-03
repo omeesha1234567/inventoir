@@ -1,17 +1,12 @@
 <aside class="sidebar" id="show-side-navigation1">
-    <button class="btn btn-close-sidebar d-md-none d-lg-none position-absolute top-0 end-0 mt-2 me-2 rounded-circle"
-            data-close="show-side-navigation1"
-            aria-label="Close">
-        <i class="fa fa-times"></i>
-    </button>
-
     <div class="sidebar-header d-flex align-items-center px-3 py-4">
-        <a href="{% url 'user-profile' %}" class="d-flex align-items-center text-decoration-none w-100">
+        <a href="{% url 'user-profile' %}" class="profile-link d-flex align-items-center text-decoration-none w-100">
             <img class="rounded-circle img-fluid"
                  id="sidebar-img"
                  src="{{ request.user.profile.profile_picture.url }}"
                  alt="Profile Picture">
-            <div class="ms-3">
+
+            <div class="profile-info ms-3">
                 <h5 class="fs-6 mb-1">
                     {{ request.user.username }}
                     {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' %}
@@ -36,10 +31,12 @@
 
     <div class="nav-container">
         <ul class="nav flex-column mt-2">
+
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'admin-dashboard' or request.resolver_match.url_name == 'coordinator-dashboard' %}active{% endif %}"
                    href="{% if request.user.profile.role == 'CO' or request.user.profile.role == 'OP' or request.user.profile.role == 'EX' %}{% url 'coordinator-dashboard' %}{% else %}{% url 'admin-dashboard' %}{% endif %}">
-                    <i class="fa fa-tachometer-alt fa-fw me-2"></i> Dashboard
+                    <i class="fa fa-tachometer-alt fa-fw"></i>
+                    <span class="sidebar-text">Dashboard</span>
                 </a>
             </li>
 
@@ -50,8 +47,10 @@
                    role="button"
                    data-bs-toggle="dropdown"
                    aria-expanded="false">
-                    <i class="fa fa-folder me-2"></i> Products
+                    <i class="fa fa-folder"></i>
+                    <span class="sidebar-text">Products</span>
                 </a>
+
                 <ul class="dropdown-menu" aria-labelledby="productsDropdown">
                     <li>
                         <a class="dropdown-item {% if request.resolver_match.url_name == 'productslist' %}active{% endif %}"
@@ -59,6 +58,7 @@
                             All Products
                         </a>
                     </li>
+
                     <li>
                         <a class="dropdown-item {% if request.resolver_match.url_name == 'category-list' %}active{% endif %}"
                            href="{% url 'category-list' %}">
@@ -71,37 +71,26 @@
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'saleslist' %}active{% endif %}"
                    href="{% url 'saleslist' %}">
-                    <i class="fa fa-shopping-bag fa-fw me-2"></i> Sales Orders
+                    <i class="fa fa-shopping-bag fa-fw"></i>
+                    <span class="sidebar-text">Sales Orders</span>
                 </a>
             </li>
 
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'purchaseslist' %}active{% endif %}"
                    href="{% url 'purchaseslist' %}">
-                    <i class="fa fa-shopping-cart me-2"></i> Purchase Orders
+                    <i class="fa fa-shopping-cart"></i>
+                    <span class="sidebar-text">Purchase Orders</span>
                 </a>
             </li>
-
-            <!-- <li class="nav-item mb-2">
-                <a class="nav-link {% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}"
-                   href="{% url 'deliveries' %}">
-                     <i class="fa-solid fa-box me-2"></i> Package 
-                </a>
-            </li> -->
 
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'invoicelist' %}active{% endif %}"
                    href="{% url 'invoicelist' %}">
-                    <i class="fa-solid fa-receipt me-2"></i> Invoices
+                    <i class="fa-solid fa-receipt"></i>
+                    <span class="sidebar-text">Invoices</span>
                 </a>
             </li>
-
-            <!-- <li class="nav-item mb-2">
-                <a class="nav-link {% if request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
-                   href="{% url 'bill_list' %}">
-                    <i class="fa-solid fa-file-invoice me-2"></i> Bills
-                </a>
-            </li> -->
 
             <li class="nav-item mb-2 dropdown">
                 <a class="nav-link {% if request.resolver_match.url_name == 'profile_list' or request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'vendor-list' %}active{% endif %} dropdown-toggle"
@@ -110,8 +99,10 @@
                    role="button"
                    data-bs-toggle="dropdown"
                    aria-expanded="false">
-                    <i class="fa fa-users me-2"></i> Accounts
+                    <i class="fa fa-users"></i>
+                    <span class="sidebar-text">Accounts</span>
                 </a>
+
                 <ul class="dropdown-menu" aria-labelledby="accountsDropdown">
                     {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
                     <li>
@@ -121,12 +112,14 @@
                         </a>
                     </li>
                     {% endif %}
+
                     <li>
                         <a class="dropdown-item {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}"
                            href="{% url 'customer_list' %}">
                             Customers
                         </a>
                     </li>
+
                     <li>
                         <a class="dropdown-item {% if request.resolver_match.url_name == 'vendor-list' %}active{% endif %}"
                            href="{% url 'vendor-list' %}">
@@ -137,22 +130,27 @@
             </li>
 
             {% if request.user.profile.role == 'CA' or request.user.profile.role == 'AD' or request.user.is_superuser %}
-            <li class="nav-item mb-2 mt-2">
-                <span class="text-uppercase small text-muted px-3" style="font-size: 0.7rem; letter-spacing: 0.05em;">Admin</span>
+            <li class="nav-item mb-2 mt-2 admin-section-title">
+                <span class="text-uppercase small text-muted px-3">Admin</span>
             </li>
+
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'company-settings' %}active{% endif %}"
                    href="{% url 'company-settings' %}">
-                    <i class="fa fa-building me-2"></i> Company Settings
+                    <i class="fa fa-building"></i>
+                    <span class="sidebar-text">Company Settings</span>
                 </a>
             </li>
+
             <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'archived-records' %}active{% endif %}"
                    href="{% url 'archived-records' 'customers' %}">
-                    <i class="fa fa-box-archive me-2"></i> Archived Records
+                    <i class="fa fa-box-archive"></i>
+                    <span class="sidebar-text">Archived Records</span>
                 </a>
             </li>
             {% endif %}
+
         </ul>
     </div>
 
@@ -160,7 +158,8 @@
         <form method="post" action="{% url 'user-logout' %}">
             {% csrf_token %}
             <button type="submit" class="btn logout-btn w-100">
-                <i class="fa fa-sign-out me-2"></i> Logout
+                <i class="fa fa-sign-out"></i>
+                <span class="sidebar-text">Logout</span>
             </button>
         </form>
     </div>
