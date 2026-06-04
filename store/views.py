@@ -46,41 +46,62 @@ from .tables import ItemTable
 
 def _dashboard_context(request, *, coordinator=False):
     company = get_user_company(request.user)
+
     if request.user.is_superuser and company is None:
         from accounts.utils import get_default_company
         company = get_default_company()
+
     if company is None:
         return None
+
     metrics = get_dashboard_metrics(company, coordinator=coordinator)
+
     cf = {'company': company}
+
     sale_dates = (
         Sale.active.filter(**cf)
         .values('date_added__date')
         .annotate(total_sales=Sum('grand_total'))
         .order_by('date_added__date')
     )
+
     metrics['sale_dates_labels'] = [
         e['date_added__date'].strftime('%Y-%m-%d')
         for e in sale_dates if e['date_added__date']
     ]
+
     metrics['sale_dates_values'] = [
         float(e['total_sales'] or 0) for e in sale_dates if e['date_added__date']
     ]
+
     purchase_dates = (
         Purchase.active.filter(**cf)
         .values('delivery_date')
         .annotate(total_purchases=Count('id'))
         .order_by('delivery_date')
     )
+
     metrics['purchase_dates_labels'] = [
         e['delivery_date'].strftime('%Y-%m-%d')
         for e in purchase_dates if e['delivery_date']
     ]
+
     metrics['purchase_dates_values'] = [
         int(e['total_purchases'] or 0) for e in purchase_dates if e['delivery_date']
     ]
+
+    low_stock_items = (
+        Item.objects
+        .filter(company=company, quantity__lt=3)
+        .select_related('category', 'vendor')
+        .order_by('quantity', 'name')
+    )
+
+    metrics['low_stock_items'] = low_stock_items
+    metrics['low_stock_count'] = low_stock_items.count()
     metrics['is_coordinator_dashboard'] = coordinator
     metrics['is_admin_dashboard'] = not coordinator
+
     return metrics
 
 

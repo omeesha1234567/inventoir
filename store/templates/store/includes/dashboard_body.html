@@ -1,28 +1,72 @@
 <style>
-    .dashboard-page { background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%); min-height: 100vh; }
-    .dashboard-title { color: #010102; font-weight: 700; font-size: 2rem; }
-    .dashboard-link { text-decoration: none; }
-    .dashboard-card { border: none; border-radius: 18px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); transition: 0.25s ease; }
-    .dashboard-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(26, 28, 143, 0.08); }
-    .dashboard-label { color: #060607; font-size: 0.9rem; font-weight: 600; }
-    .dashboard-value { color: #111827; font-size: 1.75rem; font-weight: 700; }
-    .dashboard-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(26, 28, 143, 0.1); color: #1a1c8f; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .dashboard-section { border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); padding: 18px; }
-    .admin-banner { border-radius: 16px; background: linear-gradient(135deg, #1a1c8f 0%, #3b3fd9 100%); color: #fff; }
-    .low-stock-row { border-left: 4px solid #dc2626; }
-</style>
-<style id="3qoy4i">
-    .dashboard-page { background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%); min-height: 100vh; }
-    .dashboard-title { color: #010102; font-weight: 700; font-size: 2rem; }
-    .dashboard-link { text-decoration: none; }
-    .dashboard-card { border: none; border-radius: 18px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); transition: 0.25s ease; }
-    .dashboard-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(26, 28, 143, 0.08); }
-    .dashboard-label { color: #060607; font-size: 0.9rem; font-weight: 600; }
-    .dashboard-value { color: #111827; font-size: 1.75rem; font-weight: 700; }
-    .dashboard-icon { width: 54px; height: 54px; border-radius: 14px; background: rgba(26, 28, 143, 0.1); color: #1a1c8f; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .dashboard-section { border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05); padding: 18px; }
-    .admin-banner { border-radius: 16px; background: linear-gradient(135deg, #1a1c8f 0%, #3b3fd9 100%); color: #fff; }
-    .low-stock-row { border-left: 4px solid #dc2626; }
+    .dashboard-page {
+        background: linear-gradient(180deg, #f8f9ff 0%, #ffffff 100%);
+        min-height: 100vh;
+    }
+
+    .dashboard-title {
+        color: #010102;
+        font-weight: 700;
+        font-size: 2rem;
+    }
+
+    .dashboard-link {
+        text-decoration: none;
+    }
+
+    .dashboard-card {
+        border: none;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05);
+        transition: 0.25s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 30px rgba(26, 28, 143, 0.08);
+    }
+
+    .dashboard-label {
+        color: #060607;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .dashboard-value {
+        color: #111827;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .dashboard-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        background: rgba(26, 28, 143, 0.1);
+        color: #1a1c8f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .dashboard-section {
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(17, 24, 39, 0.05);
+        padding: 18px;
+    }
+
+    .admin-banner {
+        border-radius: 16px;
+        background: linear-gradient(135deg, #1a1c8f 0%, #3b3fd9 100%);
+        color: #ffffff;
+    }
+
+    .low-stock-row {
+        border-left: 4px solid #dc2626;
+    }
 
     .stock-danger {
         background-color: #dc2626 !important;
@@ -38,9 +82,35 @@
         background-color: #16a34a !important;
         color: #ffffff !important;
     }
+
+    .low-stock-item {
+        transition: 0.2s ease;
+    }
+
+    .low-stock-item a {
+        color: #1a1c8f;
+        text-decoration: none;
+    }
+
+    .low-stock-item a:hover {
+        text-decoration: underline;
+    }
+
+    .low-stock-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .low-stock-action-btn {
+        border-radius: 999px;
+        padding: 7px 18px;
+    }
 </style>
 
 <div class="dashboard-page p-3 p-md-4">
+
     {% if company and is_admin_dashboard %}
     <div class="admin-banner p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
@@ -48,22 +118,43 @@
             <h4 class="fw-bold mb-1">{{ company.name }}</h4>
             <span class="badge bg-light text-dark">Code: {{ company.company_code }}</span>
         </div>
+
         <div class="d-flex flex-wrap gap-2">
-            <a href="{% url 'company-settings' %}" class="btn btn-light btn-sm fw-semibold"><i class="fa fa-cog me-1"></i> Settings</a>
-            <a href="{% url 'coordinator-list' %}" class="btn btn-outline-light btn-sm fw-semibold"><i class="fa fa-users me-1"></i> Coordinators</a>
-            <a href="{% url 'archived-records' 'customers' %}" class="btn btn-outline-light btn-sm fw-semibold"><i class="fa fa-box-archive me-1"></i> Archived</a>
+            <a href="{% url 'company-settings' %}" class="btn btn-light btn-sm fw-semibold">
+                <i class="fa fa-cog me-1"></i> Settings
+            </a>
+
+            <a href="{% url 'coordinator-list' %}" class="btn btn-outline-light btn-sm fw-semibold">
+                <i class="fa fa-users me-1"></i> Coordinators
+            </a>
+
+            <a href="{% url 'archived-records' 'customers' %}" class="btn btn-outline-light btn-sm fw-semibold">
+                <i class="fa fa-box-archive me-1"></i> Archived
+            </a>
         </div>
     </div>
     {% endif %}
 
     <div class="mb-4">
         <h2 class="dashboard-title mb-1">
-            {% if is_coordinator_dashboard %}Coordinator Dashboard{% else %}Admin Dashboard{% endif %}
+            {% if is_coordinator_dashboard %}
+                Coordinator Dashboard
+            {% else %}
+                Admin Dashboard
+            {% endif %}
         </h2>
-        <p class="text-muted mb-0">{% if is_coordinator_dashboard %}Today's operations and inventory snapshot{% else %}Company overview and performance{% endif %}</p>
+
+        <p class="text-muted mb-0">
+            {% if is_coordinator_dashboard %}
+                Today's operations and inventory snapshot
+            {% else %}
+                Company overview and performance
+            {% endif %}
+        </p>
     </div>
 
     <div class="row g-4 mb-4">
+
         {% if is_coordinator_dashboard %}
         <div class="col-xl-3 col-sm-6">
             <div class="card dashboard-card h-100">
@@ -72,7 +163,10 @@
                         <span class="dashboard-label">Today's Sales</span>
                         <div class="dashboard-value">₹{{ today_sales|floatformat:2 }}</div>
                     </div>
-                    <div class="dashboard-icon"><i class="fa fa-calendar-day"></i></div>
+
+                    <div class="dashboard-icon">
+                        <i class="fa fa-calendar-day"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,11 +179,15 @@
                             <span class="dashboard-label">Total Revenue</span>
                             <div class="dashboard-value">₹{{ revenue|floatformat:2 }}</div>
                         </div>
-                        <div class="dashboard-icon"><i class="fa fa-indian-rupee-sign"></i></div>
+
+                        <div class="dashboard-icon">
+                            <i class="fa fa-indian-rupee-sign"></i>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
+
         <div class="col-xl-3 col-sm-6">
             <div class="card dashboard-card h-100">
                 <div class="card-body p-4 d-flex justify-content-between">
@@ -97,10 +195,14 @@
                         <span class="dashboard-label">Total Purchases</span>
                         <div class="dashboard-value">{{ total_purchases_count }}</div>
                     </div>
-                    <div class="dashboard-icon"><i class="fa fa-shopping-cart"></i></div>
+
+                    <div class="dashboard-icon">
+                        <i class="fa fa-shopping-cart"></i>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="col-xl-3 col-sm-6">
             <div class="card dashboard-card h-100">
                 <div class="card-body p-4 d-flex justify-content-between">
@@ -108,7 +210,10 @@
                         <span class="dashboard-label">Inventory Value</span>
                         <div class="dashboard-value">₹{{ inventory_value|floatformat:2 }}</div>
                     </div>
-                    <div class="dashboard-icon"><i class="fa fa-warehouse"></i></div>
+
+                    <div class="dashboard-icon">
+                        <i class="fa fa-warehouse"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,7 +227,10 @@
                             <span class="dashboard-label">Products</span>
                             <div class="dashboard-value">{{ product_count }}</div>
                         </div>
-                        <div class="dashboard-icon"><i class="fa fa-box"></i></div>
+
+                        <div class="dashboard-icon">
+                            <i class="fa fa-box"></i>
+                        </div>
                     </div>
                 </div>
             </a>
@@ -137,11 +245,15 @@
                             <span class="dashboard-label">Customers</span>
                             <div class="dashboard-value">{{ customer_count }}</div>
                         </div>
-                        <div class="dashboard-icon"><i class="fa fa-user-group"></i></div>
+
+                        <div class="dashboard-icon">
+                            <i class="fa fa-user-group"></i>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
+
         <div class="col-xl-3 col-sm-6">
             <a href="{% url 'vendor-list' %}" class="dashboard-link">
                 <div class="card dashboard-card h-100">
@@ -150,11 +262,15 @@
                             <span class="dashboard-label">Vendors</span>
                             <div class="dashboard-value">{{ vendor_count }}</div>
                         </div>
-                        <div class="dashboard-icon"><i class="fa fa-truck"></i></div>
+
+                        <div class="dashboard-icon">
+                            <i class="fa fa-truck"></i>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
+
         <div class="col-xl-3 col-sm-6">
             <a href="{% url 'coordinator-list' %}" class="dashboard-link">
                 <div class="card dashboard-card h-100">
@@ -163,69 +279,120 @@
                             <span class="dashboard-label">Coordinators</span>
                             <div class="dashboard-value">{{ coordinator_count }}</div>
                         </div>
-                        <div class="dashboard-icon"><i class="fa fa-users"></i></div>
+
+                        <div class="dashboard-icon">
+                            <i class="fa fa-users"></i>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
         {% endif %}
+
     </div>
 
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
             <div class="dashboard-section h-100">
-                <h5 class="fw-bold mb-3" style="color: #1a1c8f;"><i class="fa fa-shopping-bag me-2"></i>Recent Sales</h5>
+                <h5 class="fw-bold mb-3" style="color: #1a1c8f;">
+                    <i class="fa fa-shopping-bag me-2"></i>Recent Sales
+                </h5>
+
                 <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
-                        <thead><tr><th>ID</th><th>Customer</th><th class="text-end">Amount</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+
                         <tbody>
-                        {% for sale in recent_sales %}
-                        <tr>
-                            <td><a href="{% url 'sale-detail' sale.pk %}">#{{ sale.id }}</a></td>
-                            <td>{{ sale.customer }}</td>
-                            <td class="text-end">₹{{ sale.grand_total }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="text-muted text-center py-3">No sales yet</td></tr>
-                        {% endfor %}
+                            {% for sale in recent_sales %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'sale-detail' sale.pk %}">#{{ sale.id }}</a>
+                                </td>
+                                <td>{{ sale.customer }}</td>
+                                <td class="text-end">₹{{ sale.grand_total }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-muted text-center py-3">
+                                    No sales yet
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
+
         <div class="col-lg-6">
             <div class="dashboard-section h-100">
-                <h5 class="fw-bold mb-3" style="color: #1a1c8f;"><i class="fa fa-cart-plus me-2"></i>Recent Purchases</h5>
+                <h5 class="fw-bold mb-3" style="color: #1a1c8f;">
+                    <i class="fa fa-cart-plus me-2"></i>Recent Purchases
+                </h5>
+
                 <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
-                        <thead><tr><th>ID</th><th>Vendor</th><th class="text-end">Status</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Vendor</th>
+                                <th class="text-end">Status</th>
+                            </tr>
+                        </thead>
+
                         <tbody>
-                        {% for p in recent_purchases %}
-                        <tr>
-                            <td><a href="{% url 'purchase-detail' p.slug %}">#{{ p.id }}</a></td>
-                            <td>{{ p.vendor.name }}</td>
-                            <td class="text-end">{{ p.get_delivery_status_display }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="text-muted text-center py-3">No purchases yet</td></tr>
-                        {% endfor %}
+                            {% for p in recent_purchases %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'purchase-detail' p.slug %}">#{{ p.id }}</a>
+                                </td>
+                                <td>{{ p.vendor.name }}</td>
+                                <td class="text-end">{{ p.get_delivery_status_display }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-muted text-center py-3">
+                                    No purchases yet
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </div>
 
     <div class="row g-4 mb-4">
+
         <div class="col-lg-5">
             <div class="dashboard-section">
-                <h5 class="fw-bold mb-3 text-danger">
-                    <i class="fa fa-triangle-exclamation me-2"></i>Low Stock Alerts
-                </h5>
-                <ul class="list-group list-group-flush">
-                {% for item in low_stock_items %}
-                    <li class="list-group-item low-stock-row d-flex justify-content-between align-items-center px-0">
-                        <a href="{% url 'product-detail' item.slug %}">{{ item.name }}</a>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-danger mb-0">
+                        <i class="fa fa-triangle-exclamation me-2"></i>Low Stock Alerts
+                    </h5>
+
+                    {% if low_stock_items %}
+                    <span class="badge bg-danger">
+                        {{ low_stock_count }} Items
+                    </span>
+                    {% endif %}
+                </div>
+
+                <ul class="list-group list-group-flush" id="lowStockList">
+                    {% for item in low_stock_items %}
+                    <li class="list-group-item low-stock-row low-stock-item d-flex justify-content-between align-items-center px-0 {% if forloop.counter > 10 %}d-none{% endif %}">
+                        <a href="{% url 'product-detail' item.slug %}" class="fw-semibold">
+                            {{ item.name }}
+                        </a>
 
                         {% if item.quantity == 0 %}
                             <span class="badge stock-danger">{{ item.quantity }} left</span>
@@ -235,18 +402,87 @@
                             <span class="badge stock-success">{{ item.quantity }} left</span>
                         {% endif %}
                     </li>
-                {% empty %}
+                    {% empty %}
                     <li class="list-group-item text-muted border-0 px-0">
                         All products are above low-stock threshold.
                     </li>
-                {% endfor %}
+                    {% endfor %}
                 </ul>
+
+                {% if low_stock_count > 10 %}
+                <div class="low-stock-actions">
+                    <button type="button" class="btn btn-outline-danger btn-sm fw-semibold low-stock-action-btn" id="showMoreLowStockBtn">
+                        Show More
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold low-stock-action-btn d-none" id="showLessLowStockBtn">
+                        Show Less
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
+
         <div class="col-lg-7">
             <div class="dashboard-section">
                 {% include 'store/charts.html' %}
             </div>
         </div>
+
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const lowStockItems = document.querySelectorAll(".low-stock-item");
+        const showMoreBtn = document.getElementById("showMoreLowStockBtn");
+        const showLessBtn = document.getElementById("showLessLowStockBtn");
+
+        if (!showMoreBtn || !showLessBtn) {
+            return;
+        }
+
+        const initialVisibleCount = 10;
+        const step = 10;
+        let visibleCount = initialVisibleCount;
+
+        function updateLowStockList() {
+            lowStockItems.forEach(function (item, index) {
+                if (index < visibleCount) {
+                    item.classList.remove("d-none");
+                } else {
+                    item.classList.add("d-none");
+                }
+            });
+
+            if (visibleCount >= lowStockItems.length) {
+                showMoreBtn.classList.add("d-none");
+            } else {
+                showMoreBtn.classList.remove("d-none");
+            }
+
+            if (visibleCount > initialVisibleCount) {
+                showLessBtn.classList.remove("d-none");
+            } else {
+                showLessBtn.classList.add("d-none");
+            }
+        }
+
+        showMoreBtn.addEventListener("click", function () {
+            visibleCount = visibleCount + step;
+
+            if (visibleCount > lowStockItems.length) {
+                visibleCount = lowStockItems.length;
+            }
+
+            updateLowStockList();
+        });
+
+        showLessBtn.addEventListener("click", function () {
+            visibleCount = initialVisibleCount;
+            updateLowStockList();
+        });
+
+        updateLowStockList();
+    });
+</script>
