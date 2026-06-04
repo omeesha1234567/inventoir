@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     body.classList.add("sidebar-collapsed");
 
     if (sidebarToggleBtn) {
+      
         sidebarToggleBtn.addEventListener("click", function () {
             body.classList.toggle("sidebar-collapsed");
         });
