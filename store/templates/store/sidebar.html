@@ -69,6 +69,13 @@
             </li>
 
             <li class="nav-item mb-2">
+                <a class="nav-link {% if request.resolver_match.url_name == 'analytics-dashboard' %}active{% endif %}"
+                   href="{% url 'analytics-dashboard' %}">
+                    <i class="fa fa-chart-line fa-fw"></i>
+                    <span class="sidebar-text">Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item mb-2">
                 <a class="nav-link {% if request.resolver_match.url_name == 'saleslist' %}active{% endif %}"
                    href="{% url 'saleslist' %}">
                     <i class="fa fa-shopping-bag fa-fw"></i>

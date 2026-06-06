@@ -1,0 +1,42 @@
+<div class="analytics-products-tab">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="analytics-chart-card">
+                <div class="chart-card-header">Top Selling Products <span class="analytics-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Shows the highest-volume products sold within the chosen period.">ⓘ</span></div>
+                <div id="products-top-selling-chart" class="analytics-chart"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="analytics-chart-card">
+                <div class="chart-card-header">Top Revenue Products <span class="analytics-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Shows products generating the highest revenue for your business.">ⓘ</span></div>
+                <div id="products-top-revenue-chart" class="analytics-chart"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="analytics-chart-card">
+                <div class="chart-card-header">Worst Performing Products <span class="analytics-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Highlights products with the weakest sales performance in the selected timeframe.">ⓘ</span></div>
+                <div id="products-worst-chart" class="analytics-chart"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="analytics-chart-card">
+                <div class="chart-card-header">Inventory Value by Category <span class="analytics-info-icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Shows how inventory value is distributed across product categories.">ⓘ</span></div>
+                <div id="products-category-chart" class="analytics-chart"></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="analytics-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div><strong>Dead Stock Analysis</strong></div>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-secondary dead-stock-filter active" data-days="30">30d</button>
+                        <button class="btn btn-sm btn-outline-secondary dead-stock-filter" data-days="60">60d</button>
+                        <button class="btn btn-sm btn-outline-secondary dead-stock-filter" data-days="90">90d</button>
+                        <button class="btn btn-sm btn-outline-secondary dead-stock-filter" data-days="180">180d</button>
+                    </div>
+                </div>
+                <div id="dead-stock-table" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
