@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.utils import timezone
 
 from accounts.models import Customer, Profile, ROLE_COORDINATOR, Vendor
@@ -24,24 +24,24 @@ def get_dashboard_metrics(company, *, coordinator=False):
     items_qs = Item.active.filter(**cf)
 
     total_sales = sales_qs.aggregate(t=Sum('grand_total')).get('t') or 0
-    total_purchases = purchases_qs.aggregate(t=Sum('id')).get('t')
-    purchase_value = purchases_qs.count()
+    total_purchases_count = purchases_qs.count()
 
     today_sales = sales_qs.filter(date_added__date=today).aggregate(
         t=Sum('grand_total'),
     ).get('t') or 0
 
-    inventory_value = sum(
-        (item.price or 0) * (item.quantity or 0) for item in items_qs.only('price', 'quantity')
-    )
+    item_count = items_qs.count()
+    inventory_value = items_qs.aggregate(
+        total=Sum(F('price') * F('quantity')),
+    ).get('total') or 0
 
     metrics = {
         'total_sales': total_sales,
-        'total_purchases_count': purchases_qs.count(),
+        'total_purchases_count': total_purchases_count,
         'revenue': total_sales,
         'inventory_value': round(inventory_value, 2),
-        'product_count': items_qs.count(),
-        'items_count': items_qs.count(),
+        'product_count': item_count,
+        'items_count': item_count,
         'total_categories': Category.active.filter(**cf).count(),
         'sales_count': sales_qs.count(),
         'vendor_count': Vendor.active.filter(**cf).count(),

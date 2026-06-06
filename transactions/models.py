@@ -77,6 +77,9 @@ class Sale(CompanyOwnedModel, ArchivableModel, AuditedModel):
         verbose_name = "Sale"
         verbose_name_plural = "Sales"
         ordering = ['-date_added', '-id']
+        indexes = [
+            models.Index(fields=['company', 'date_added'], name='sale_company_date_added_idx'),
+        ]
 
     def __str__(self):
         return (
@@ -201,6 +204,10 @@ class Purchase(CompanyOwnedModel, ArchivableModel, AuditedModel):
                 fields=['company', 'slug'],
                 name='unique_purchase_slug_per_company',
             ),
+        ]
+        indexes = [
+            models.Index(fields=['company', 'order_date'], name='purch_co_order_dt_idx'),
+            models.Index(fields=['company', 'delivery_date'], name='purch_co_delivery_dt_idx'),
         ]
 
     @property

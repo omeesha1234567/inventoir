@@ -151,6 +151,9 @@ class Vendor(CompanyOwnedModel, ArchivableModel, AuditedModel):
                 name='unique_vendor_slug_per_company',
             ),
         ]
+        indexes = [
+            models.Index(fields=['company', 'name'], name='vendor_company_name_idx'),
+        ]
 
 
 class Customer(CompanyOwnedModel, ArchivableModel, AuditedModel):
@@ -167,6 +170,10 @@ class Customer(CompanyOwnedModel, ArchivableModel, AuditedModel):
 
     class Meta:
         db_table = 'Customers'
+        indexes = [
+            models.Index(fields=['company', 'first_name'], name='cust_co_first_name_idx'),
+            models.Index(fields=['company', 'last_name'], name='cust_co_last_name_idx'),
+        ]
 
     def __str__(self) -> str:
         return self.get_full_name()

@@ -83,6 +83,9 @@ class Item(CompanyOwnedModel, ArchivableModel, AuditedModel):
                 name='unique_item_slug_per_company',
             ),
         ]
+        indexes = [
+            models.Index(fields=['company', 'quantity'], name='item_company_quantity_idx'),
+        ]
 
 
 class Delivery(CompanyOwnedModel):
