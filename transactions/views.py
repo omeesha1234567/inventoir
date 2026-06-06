@@ -217,7 +217,7 @@ def export_sales_to_excel(request):
     ]
     worksheet.append(columns)
 
-    sales = filter_by_company(Sale.objects.select_related('customer'), request.user)
+    sales = filter_by_company(Sale.objects.all(), request.user)
 
     for sale in sales:
         if sale.date_added.tzinfo is not None:
@@ -259,7 +259,7 @@ def export_purchases_to_excel(request):
     ]
     worksheet.append(columns)
 
-    purchases = filter_by_company(Purchase.objects.select_related('vendor'), request.user)
+    purchases = filter_by_company(Purchase.objects.all(), request.user)
 
     for purchase in purchases:
         order_date = purchase.order_date
@@ -310,7 +310,7 @@ class SaleDetailView(CompanyAccessMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.object.sync_payment_state(save=False)
+        self.object.sync_payment_state(save=True)
         context["sale_items"] = self.object.saledetail_set.select_related("item").all()
         context["payment_records"] = self.object.payments.filter(
             is_archived=False,
@@ -583,9 +583,6 @@ class PurchaseListView(CompanyAccessMixin, ListView):
     paginate_by = 10
     ordering = ['-delivery_date', '-order_date', '-id']
 
-    def get_queryset(self):
-        return super().get_queryset().select_related('vendor')
-
 
 class PurchaseDetailView(CompanyAccessMixin, DetailView):
     model = Purchase
@@ -594,7 +591,7 @@ class PurchaseDetailView(CompanyAccessMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.object.sync_payment_state(save=False)
+        self.object.sync_payment_state(save=True)
         context["purchase_items"] = self.object.purchase_items.select_related("item").all()
         context["payment_records"] = self.object.payments.filter(
             is_archived=False,
@@ -948,7 +945,7 @@ class PurchaseUpdateView(CoordinatorOrAdminMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.object.sync_payment_state(save=False)
+        self.object.sync_payment_state(save=True)
         context['vendors'] = filter_by_company(
             Vendor.objects.all(), self.request.user,
         ).order_by('name')
