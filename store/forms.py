@@ -31,6 +31,7 @@ class ItemForm(forms.ModelForm):
             'description',
             'quantity',
             'price',
+            'hsn_code',
             'gst_percentage',
             'purchase_date'
         ]
@@ -55,6 +56,7 @@ class ItemForm(forms.ModelForm):
                     'id': 'id_price'
                 }
             ),
+            'hsn_code': forms.TextInput(attrs={'class': 'form-control'}),
             'gst_percentage': forms.NumberInput(
                 attrs={
                     'class': 'form-control',

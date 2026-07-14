@@ -40,6 +40,7 @@ class Item(CompanyOwnedModel, ArchivableModel, AuditedModel):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
     price = models.FloatField(default=0)
+    hsn_code = models.CharField(max_length=20,blank=True,null=True,verbose_name="HSN Code")
     gst_percentage = models.FloatField(default=0)
     purchase_date = models.DateTimeField(null=True, blank=True)
     vendor = models.ForeignKey(

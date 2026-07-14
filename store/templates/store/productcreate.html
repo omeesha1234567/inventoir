@@ -134,17 +134,38 @@
                         </div>
 
                         <div class="row g-4 mb-3">
-                            <div class="col-md-6">
-                                <label>GST (%)</label>
-                                {{ form.gst_percentage }}
-                                <div class="text-danger small mt-1">{{ form.gst_percentage.errors }}</div>
-                            </div>
 
-                            <div class="col-md-6">
-                                <label>Final Price After GST</label>
-                                <input type="text" id="final_price_preview" class="form-control" readonly placeholder="Calculated automatically">
+                        <div class="col-md-4">
+                            <label>GST (%)</label>
+                            {{ form.gst_percentage }}
+                            <div class="text-danger small mt-1">
+                                {{ form.gst_percentage.errors }}
                             </div>
                         </div>
+
+                        <div class="col-md-4">
+                            <label>HSN Code</label>
+                            {{ form.hsn_code }}
+                            <div class="helper-text">
+                                Example: 84713010
+                            </div>
+                            <div class="text-danger small mt-1">
+                                {{ form.hsn_code.errors }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label>Final Price After GST</label>
+
+                            <input
+                                type="text"
+                                id="final_price_preview"
+                                class="form-control"
+                                readonly
+                                placeholder="Calculated automatically">
+                        </div>
+
+                    </div>
 
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
