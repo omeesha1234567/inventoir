@@ -17,7 +17,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-
+#dep
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'transactions.apps.TransactionsConfig',
     'invoice.apps.InvoiceConfig',
     'bills.apps.BillsConfig',
+    'analytics.apps.AnalyticsConfig',
 ]
 
 MIDDLEWARE = [
@@ -108,13 +109,18 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-in'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
 USE_TZ = True
+DATE_FORMAT = 'd/m/Y'
+DATETIME_FORMAT = 'd/m/Y h:i A'
+
+SHORT_DATE_FORMAT = 'd/m/Y'
+SHORT_DATETIME_FORMAT = 'd/m/Y h:i A'
 
 LOGIN_URL = 'owner-login'
 LOGIN_REDIRECT_URL = 'admin-dashboard'
