@@ -203,6 +203,43 @@ def get_vendor_details(request):
             status=500
         )
 
+@login_required
+def get_item_details(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"status": "error", "message": "Invalid request method"},
+            status=405,
+        )
+
+    guard = tenant_guard_json(request)
+    if guard is not None:
+        return guard
+
+    item_name = normalize_text(request.POST.get("item_name", ""))
+
+    item = scoped_queryset(Item, request.user).filter(
+        name__iexact=item_name
+    ).first()
+
+    if item is None:
+        return JsonResponse(
+            {
+                "status": "success",
+                "found": False,
+            }
+        )
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "found": True,
+            "description": item.description,
+            "category": item.category.name if item.category else "",
+            "price": str(item.price),
+            "gst": item.gst_percentage,
+            "hsn_code": item.hsn_code or "",
+        }
+    )
 
 @login_required
 def export_sales_to_excel(request):
@@ -500,11 +537,6 @@ def SaleCreateView(request):
                         updated_by=request.user,
                     )
 
-                print(type(new_sale.grand_total))
-                print(new_sale.grand_total)
-
-                print(type(initial_amount_paid))
-                print(initial_amount_paid)
 
                 new_sale.sync_payment_state(save=True)
 
@@ -712,6 +744,7 @@ def PurchaseCreateView(request):
                 quantity_raw = row.get("quantity", 0)
                 price_raw = row.get("price", 0)
                 gst_raw = row.get("gst_percentage", 0)
+                hsn_code = normalize_text(row.get("hsn_code", ""))
 
                 if not item_name:
                     raise ValueError("Product name is required in every row")
@@ -782,6 +815,7 @@ def PurchaseCreateView(request):
                     "quantity": quantity,
                     "price": price,
                     "gst_percentage": gst_percentage,
+                    "hsn_code": hsn_code,
                 })
 
             if initial_amount_paid > batch_total:
@@ -806,13 +840,14 @@ def PurchaseCreateView(request):
 
                     if item_obj is None:
                         item_obj = Item.objects.create(
-                            name=row['item_name'],
-                            description=row['item_description'],
-                            category=row['category_obj'],
+                            name=row["item_name"],
+                            description=row["item_description"],
+                            category=row["category_obj"],
                             company=company,
-                            quantity=0,
-                            price=float(row['price']),
-                            gst_percentage=float(row['gst_percentage']),
+                            quantity=row["quantity"],
+                            price=float(row["price"]),
+                            gst_percentage=float(row["gst_percentage"]),
+                            hsn_code=row["hsn_code"],
                             purchase_date=purchase_datetime,
                             vendor=vendor_obj,
                             created_by=request.user,
@@ -821,26 +856,30 @@ def PurchaseCreateView(request):
                     else:
                         if row["category_obj"] is not None:
                             item_obj.category = row["category_obj"]
+
                         if row["item_description"]:
                             item_obj.description = row["item_description"]
 
                         item_obj.price = float(row["price"])
                         item_obj.gst_percentage = float(row["gst_percentage"])
+
+                        if row["hsn_code"]:
+                            item_obj.hsn_code = row["hsn_code"]
+
                         item_obj.vendor = vendor_obj
                         item_obj.purchase_date = purchase_datetime
+                        item_obj.quantity += row["quantity"]
+
                         item_obj.save()
 
                     PurchaseItem.objects.create(
                         purchase=purchase_obj,
                         item=item_obj,
                         company=company,
-                        quantity=row['quantity'],
-                        price=row['price'],
-                        gst_percentage=row['gst_percentage'],
+                        quantity=row["quantity"],
+                        price=row["price"],
+                        gst_percentage=row["gst_percentage"],
                     )
-
-                    item_obj.quantity += row["quantity"]
-                    item_obj.save(update_fields=["quantity"])
 
                 if initial_amount_paid > 0:
                     PurchasePayment.objects.create(

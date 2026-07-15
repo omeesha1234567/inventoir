@@ -16,6 +16,7 @@ from .views import (
     export_purchases_to_excel,
     get_customer_details,
     get_vendor_details,
+    get_item_details,
     add_purchase_payment,
     add_sale_payment,
     SalePaymentUpdateView,
@@ -51,7 +52,11 @@ urlpatterns = [
         SalePaymentArchiveView.as_view(),
         name='sale-payment-archive',
     ),
-
+    path(
+    "get-item-details/",
+    get_item_details,
+    name="get-item-details",
+),
     path('get-customer-details/', get_customer_details, name='get-customer-details'),
     path('get-vendor-details/', get_vendor_details, name='get-vendor-details'),
 

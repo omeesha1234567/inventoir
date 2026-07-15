@@ -274,6 +274,7 @@
                                         <th>Quantity</th>
                                         <th>Cost Price</th>
                                         <th>GST (%)</th>
+                                        <th>HSN Code</th>
                                         <th>Line Total (GST Incl.)</th>
                                         <th>Action</th>
                                     </tr>
@@ -385,6 +386,11 @@
                     <input type="text" inputmode="decimal" autocomplete="off" class="form-control gst" value="0">
                 </td>
                 <td>
+    <input type="text"
+           class="form-control hsn-code"
+           placeholder="HSN Code">
+</td>
+                <td>
                     <input type="text" class="form-control readonly-box final-price" readonly value="0.00">
                 </td>
                 <td class="text-center">
@@ -429,7 +435,45 @@
         document.getElementById('purchase_total_display').textContent = `₹${total.toFixed(2)}`;
         return total;
     }
+ function fetchItemDetails(row) {
 
+    const itemName = row.querySelector(".item-name").value.trim();
+
+    if (!itemName) {
+        return;
+    }
+
+    fetch("{% url 'get-item-details' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: new URLSearchParams({
+            item_name: itemName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (!data.found) {
+            return;
+        }
+
+        row.querySelector(".category-name").value = data.category;
+        row.querySelector(".item-description").value = data.description;
+        row.querySelector(".price").value = parseFloat(data.price).toFixed(2);
+        row.querySelector(".gst").value = parseFloat(data.gst).toFixed(2);
+        row.querySelector(".hsn-code").value = data.hsn_code || "";
+
+        updateFinalPrice(row);
+        calculateTotalAmount();
+
+    })
+    .catch(error => console.log(error));
+
+}
     function collectRows() {
         const rows = document.querySelectorAll('#purchase_table_body tr');
         const data = [];
@@ -441,7 +485,8 @@
                 item_description: row.querySelector('.item-description').value.trim(),
                 quantity: row.querySelector('.quantity').value.trim(),
                 price: row.querySelector('.price').value.trim(),
-                gst_percentage: row.querySelector('.gst').value.trim()
+                gst_percentage: row.querySelector('.gst').value.trim(),
+                hsn_code: row.querySelector('.hsn-code').value.trim()
             });
         });
 
@@ -577,7 +622,16 @@
             updateFinalPrice(row);
             calculateTotalAmount();
         });
+        tableBody.addEventListener('change', function (e) {
 
+    const row = e.target.closest('tr');
+    if (!row) return;
+
+    if (e.target.classList.contains('item-name')) {
+        fetchItemDetails(row);
+    }
+
+});
         tableBody.addEventListener('blur', function (e) {
             const row = e.target.closest('tr');
             if (!row) return;
