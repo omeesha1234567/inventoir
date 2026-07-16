@@ -5,7 +5,7 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, time
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -325,6 +325,8 @@ def export_purchases_to_excel(request):
     return response
 
 
+from django.db.models import Q
+
 class SaleListView(CompanyAccessMixin, ListView):
     model = Sale
     template_name = "transactions/sales_list.html"
@@ -332,12 +334,25 @@ class SaleListView(CompanyAccessMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return (
+        queryset = (
             super()
             .get_queryset()
-            .select_related('customer')
-            .order_by('-date_added', '-id')
+            .select_related("customer")
+            .order_by("-date_added", "-id")
         )
+
+        search = self.request.GET.get("search", "").strip()
+
+        if search:
+            queryset = queryset.filter(
+                Q(customer__first_name__icontains=search) |
+                Q(customer__last_name__icontains=search) |
+                Q(customer__phone__icontains=search) |
+                Q(id__icontains=search) |
+                Q(customer_gst_number__icontains=search)
+            )
+
+        return queryset
 
 
 class SaleDetailView(CompanyAccessMixin, DetailView):
@@ -613,7 +628,26 @@ class PurchaseListView(CompanyAccessMixin, ListView):
     template_name = "transactions/purchases_list.html"
     context_object_name = "purchases"
     paginate_by = 10
-    ordering = ['-delivery_date', '-order_date', '-id']
+
+    def get_queryset(self):
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related("vendor")
+            .order_by("-delivery_date", "-order_date", "-id")
+        )
+
+        search = self.request.GET.get("search", "").strip()
+
+        if search:
+            queryset = queryset.filter(
+                Q(invoice_id__icontains=search) |
+                Q(vendor__name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(delivery_date__icontains=search)
+            )
+
+        return queryset
 
 
 class PurchaseDetailView(CompanyAccessMixin, DetailView):
