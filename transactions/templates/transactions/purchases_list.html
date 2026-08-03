@@ -138,39 +138,44 @@
                 </style>
                 <div class="card-body border-bottom py-3">
                     <form method="GET">
-                        <div class="row align-items-center">
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </span>
+                        <div class="row g-3 align-items-end">
 
-                                    <input
-                                        type="text"
-                                        class="form-control border-start-0"
-                                        name="search"
-                                        placeholder="Search by Invoice ID, Vendor, Description..."
-                                        value="{{ request.GET.search }}"
-                                    >
-                                </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Search</label>
+                                <input type="text"
+                                    name="search"
+                                    class="form-control"
+                                    placeholder="Search Invoice ID, Vendor or Description..."
+                                    value="{{ search }}">
                             </div>
 
-                            <div class="col-auto">
-                                <button class="btn"
-                                        style="background:#1a1c8f;color:white;border-radius:10px;">
+                            <div class="col-md-2">
+                                <label class="form-label">From</label>
+                                <input type="date"
+                                    name="from_date"
+                                    class="form-control"
+                                    value="{{ from_date }}">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">To</label>
+                                <input type="date"
+                                    name="to_date"
+                                    class="form-control"
+                                    value="{{ to_date }}">   
+                            </div>
+
+                            <div class="col-md-2 d-flex gap-2">
+                                <button class="btn btn-primary w-100">
                                     Search
                                 </button>
-                            </div>
 
-                            {% if request.GET.search %}
-                            <div class="col-auto">
                                 <a href="{% url 'purchaseslist' %}"
-                                class="btn btn-outline-secondary"
-                                style="border-radius:10px;">
+                                class="btn btn-outline-secondary">
                                     Clear
                                 </a>
                             </div>
-                            {% endif %}
+
                         </div>
                     </form>
                 </div>
@@ -266,7 +271,7 @@
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}">«</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}&vendor={{ selected_vendor }}&from_date={{ from_date }}&to_date={{ to_date }}">«</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">«</span></li>
@@ -276,13 +281,15 @@
                         {% if page_obj.number == i %}
                         <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                         {% else %}
-                        <li class="page-item"><a class="page-link" href="?page={{ i }}&search={{ request.GET.search }}">{{ i }}</a></li>
+                        <li class="page-item"><a class="page-link"
+href="?page={{ i }}&search={{ search }}&vendor={{ selected_vendor }}&from_date={{ from_date }}&to_date={{ to_date }}">{{ i }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}">»</a>
+                        <a class="page-link"
+href="?page={{ page_obj.next_page_number }}&search={{ search }}&vendor={{ selected_vendor }}&from_date={{ from_date }}&to_date={{ to_date }}">»</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">»</span></li>

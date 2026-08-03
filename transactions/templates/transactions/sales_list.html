@@ -110,45 +110,61 @@
                     }
                 </style>
                 <div class="card-body border-bottom py-3">
-    <form method="GET">
-        <div class="row align-items-center">
+                    <form method="GET">
+                        <div class="row g-3 align-items-end">
 
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
+                            <div class="col-md-5">
+                                <label class="form-label">Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </span>
 
-                    <input
-                        type="text"
-                        name="search"
-                        class="form-control border-start-0"
-                        placeholder="Search by Customer, Phone, GST..."
-                        value="{{ request.GET.search }}"
-                    >
+                                    <input
+                                        type="text"
+                                        name="search"
+                                        class="form-control border-start-0"
+                                        placeholder="Search Customer, Phone, GST..."
+                                        value="{{ request.GET.search }}"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">From</label>
+                                <input
+                                    type="date"
+                                    name="from_date"
+                                    class="form-control"
+                                    value="{{ request.GET.from_date }}"
+                                >
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">To</label>
+                                <input
+                                    type="date"
+                                    name="to_date"
+                                    class="form-control"
+                                    value="{{ request.GET.to_date }}"
+                                >
+                            </div>
+
+                            <div class="col-md-3 d-flex gap-2">
+                                <button class="btn w-100"
+                                        style="background:#1a1c8f;color:white;border-radius:10px;">
+                                    Search
+                                </button>
+
+                                <a href="{% url 'saleslist' %}"
+                                class="btn btn-outline-secondary">
+                                    Clear
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
                 </div>
-            </div>
-
-            <div class="col-auto">
-                <button class="btn"
-                        style="background:#1a1c8f;color:white;border-radius:10px;">
-                    Search
-                </button>
-            </div>
-
-            {% if request.GET.search %}
-            <div class="col-auto">
-                <a href="{% url 'saleslist' %}"
-                   class="btn btn-outline-secondary"
-                   style="border-radius:10px;">
-                    Clear
-                </a>
-            </div>
-            {% endif %}
-
-        </div>
-    </form>
-</div>
                 <div class="table-responsive">
                     <table class="table sales-table mb-0">
                         <thead>
@@ -216,7 +232,7 @@
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}">«</a>
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}">«</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">«</span></li>
@@ -226,13 +242,13 @@
                         {% if page_obj.number == i %}
                         <li class="page-item active"><span class="page-link">{{ i }}</span></li>
                         {% else %}
-                        <li class="page-item"><a class="page-link" href="?page={{ i }}&search={{ request.GET.search }}">{{ i }}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}&search={{ request.GET.search }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}">{{ i }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}">»</a>
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search }}&from_date={{ request.GET.from_date }}&to_date={{ request.GET.to_date }}">»</a>
                     </li>
                     {% else %}
                     <li class="page-item disabled"><span class="page-link">»</span></li>

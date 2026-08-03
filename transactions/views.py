@@ -342,6 +342,8 @@ class SaleListView(CompanyAccessMixin, ListView):
         )
 
         search = self.request.GET.get("search", "").strip()
+        from_date = self.request.GET.get("from_date", "").strip()
+        to_date = self.request.GET.get("to_date", "").strip()
 
         if search:
             queryset = queryset.filter(
@@ -351,6 +353,11 @@ class SaleListView(CompanyAccessMixin, ListView):
                 Q(id__icontains=search) |
                 Q(customer_gst_number__icontains=search)
             )
+        if from_date:
+            queryset = queryset.filter(date_added__date__gte=from_date)
+
+        if to_date:
+            queryset = queryset.filter(date_added__date__lte=to_date)
 
         return queryset
 
@@ -638,16 +645,32 @@ class PurchaseListView(CompanyAccessMixin, ListView):
         )
 
         search = self.request.GET.get("search", "").strip()
+        from_date = self.request.GET.get("from_date", "").strip()
+        to_date = self.request.GET.get("to_date", "").strip()
 
         if search:
             queryset = queryset.filter(
-                Q(invoice_id__icontains=search) |
-                Q(vendor__name__icontains=search) |
-                Q(description__icontains=search) |
-                Q(delivery_date__icontains=search)
+                Q(invoice_id__icontains=search)
+                | Q(vendor__name__icontains=search)
+                | Q(description__icontains=search)
             )
 
+        if from_date:
+            queryset = queryset.filter(delivery_date__gte=from_date)
+
+        if to_date:
+            queryset = queryset.filter(delivery_date__lte=to_date)
+
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["search"] = self.request.GET.get("search", "")
+        context["from_date"] = self.request.GET.get("from_date", "")
+        context["to_date"] = self.request.GET.get("to_date", "")
+
+        return context
 
 
 class PurchaseDetailView(CompanyAccessMixin, DetailView):
