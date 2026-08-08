@@ -562,31 +562,27 @@ def SaleCreateView(request):
 
                 new_sale.sync_payment_state(save=True)
 
-                invoice_obj, created = Invoice.objects.get_or_create(
-                    sale=new_sale,
-                    defaults={
-                        'shipping': 0,
-                        'company': company,
-                        'created_by': request.user,
-                        'updated_by': request.user,
-                    },
-                )
+                # invoice_obj, created = Invoice.objects.get_or_create(
+                #     sale=new_sale,
+                #     defaults={
+                #         'shipping': 0,
+                #         'company': company,
+                #         'created_by': request.user,
+                #         'updated_by': request.user,
+                #     },
+                # )
 
-                create_invoice_items_from_sale(invoice_obj, new_sale, company)
-                sync_invoice_from_sale(invoice_obj, save=True)
-                invoice_obj.refresh_from_db()
+                # create_invoice_items_from_sale(invoice_obj, new_sale, company)
+                # sync_invoice_from_sale(invoice_obj, save=True)
+                # invoice_obj.refresh_from_db()
 
-            download_url = reverse(
-                'invoice-pdf',
-                kwargs={'slug': invoice_obj.slug},
-            )
+            download_url = None
             return JsonResponse(
                 {
                     "status": "success",
                     "message": "Sale created successfully!",
                     "redirect": reverse("saleslist"),
-                    "download_url": download_url,
-                    "invoice_id": invoice_obj.id,
+                    "download_url": None,
                 }
             )
 
